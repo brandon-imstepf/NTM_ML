@@ -34,6 +34,8 @@ Notebooks for reproducing paper figures. Each assumes input data is in `./data/`
 - `figure10_shapley.ipynb` — Figure 10: MLP Shapley analysis beeswarm plots and mean |SHAP| values
 - `data/` — Place simulation `.mat` files, trained model `.pt` files, and training CSVs here
 
+- All glass brain visualizations are generated using the `Brainframe` library found at https://github.com/Raj-Lab-UCSF/Brainframe
+
 ## Training Data Format
 
 All CSVs share the same column format:
