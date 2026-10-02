@@ -1,0 +1,98 @@
+% Griddatan
+clc;
+clear;
+
+% load datasets 
+tr_filepath = fullfile('..','data/data_neural_network_model/training_data_e6/','data_bias_e5_1.csv'); %100k rows
+training_superset = readmatrix(tr_filepath);
+% subset data based off seed
+training_seed = 42;
+rng(training_seed)
+
+training_dataset_size = 10000;
+training_idx = randperm(100000,training_dataset_size);
+training_dataset = training_superset(training_idx,:);
+% load validation
+va_filepath = fullfile('..','data/data_baseline_models/e3_data/','bias_val_e3.csv');
+validation_dataset = readmatrix(va_filepath);
+
+% load training
+features = training_dataset(:,1:6);
+flux = training_dataset(:,7);
+emc = training_dataset(:,8);
+
+
+% need to standardize the responses -- they are too small!!
+flux_mean = mean(flux); flux_std = std(flux);
+flux_z = (flux - flux_mean) / flux_std; % z-scored flux
+
+emc_mean = mean(emc); emc_std = std(emc);
+emc_z = (emc - emc_mean) / emc_std; % z-scored emc
+
+
+
+% load validation
+val_features = validation_dataset(:,1:6);
+val_flux = validation_dataset(:,7);
+val_emc = validation_dataset(:,8);
+
+
+
+mkdir("griddatan_saved_models");
+Results = table(); % leavin in just in case
+row = 1; % leaving in just in case
+
+
+qhull_opts = {'Qt','Qbb','Qc','Qx'};
+
+% 'linear' dropped. With 5000 points in 6-D, query points landing
+% outside the training convex hull return NaN poison output.
+FitMethodList = ["nearest"];
+
+mkdir("griddatan_saved_models");
+Results = table();
+row = 1;
+totalcount = numel(FitMethodList);
+
+for i = 1:length(FitMethodList) % leaving the for loop in in case need to do another method later
+    tag = sprintf("FM_%s_%s", FitMethodList(i),training_dataset_size);
+
+    %fprintf("griddatan flux %d/%d using %s... \n", row, totalcount, FitMethodList(i));
+    griddatan_flux_ypred_z = griddatan(features, flux_z, val_features,  FitMethodList(i), qhull_opts);
+    %fprintf("griddatan emc %d/%d using %s... \n", row, totalcount, FitMethodList(i));
+    griddatan_emc_ypred_z  = griddatan(features, emc_z, val_features, FitMethodList(i), qhull_opts);
+
+    griddatan_flux_ypred = griddatan_flux_ypred_z * flux_std + flux_mean;
+    griddatan_emc_ypred  = griddatan_emc_ypred_z  * emc_std  + emc_mean;
+
+    flux_nmse_griddatan = mean((val_flux - griddatan_flux_ypred).^2) / var(val_flux);
+    emc_nmse_griddatan  = mean((val_emc  - griddatan_emc_ypred).^2)  / var(val_emc);
+
+    Results(row,:) = {FitMethodList(i), flux_nmse_griddatan, emc_nmse_griddatan};
+    row = row + 1;
+
+    % griddatan has no reusable "model" object (unlike fitrgp) --
+    % actually worth persisting is the prediction itself plus the NMSE,
+    % since re-deriving it just means calling griddatan again
+    filename = fullfile("griddatan_saved_models", tag + ".mat");
+    save(filename, ...
+        "griddatan_flux_ypred", "griddatan_emc_ypred", ...
+        "flux_nmse_griddatan", "emc_nmse_griddatan", ...
+        "qhull_opts");
+end
+
+files = dir(fullfile('griddatan_saved_models','*.mat'));
+n = numel(files);
+tags = strings(n,1);
+flux_nmse = zeros(n,1);
+emc_nmse  = zeros(n,1);
+for i = 1:n
+    d = load(fullfile(files(i).folder, files(i).name), 'flux_nmse_griddatan', 'emc_nmse_griddatan');
+    tags(i) = erase(files(i).name, '.mat');
+    flux_nmse(i) = d.flux_nmse_griddatan;
+    emc_nmse(i)  = d.emc_nmse_griddatan;
+end
+T = table(tags, flux_nmse, emc_nmse);
+T = sortrows(T, 'flux_nmse');
+writetable(T, 'griddatan_comparison_results.csv')
+head(T, 10)   % best 10 configs by flux NMSE
