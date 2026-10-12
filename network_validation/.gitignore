@@ -1,0 +1,4 @@
+outputs/
+outputs_smoke/
+logs/*
+!logs/.gitkeep

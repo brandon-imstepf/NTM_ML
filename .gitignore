@@ -1,0 +1,16 @@
+# Editor, OS and tool caches
+*.asv
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+
+# Gaussian process / interpolant model folders (fitted models are 0.2-1 GB per
+# file and exceed GitHub's 100 MB limit). The chosen model,
+#   saved_models_superset_5000/FM_exact__BF_linear__KF_ARDMatern32__OPT_fminunc.mat,
+# is committed in compact form (identical predictive mean, 0.6 MB) at
+#   network_validation/models/gp_e5k_exact_linear_ardmatern32_fminunc.mat
+gaussian_process-interpolant/*/
+
+# Parameter-recovery figures
+parameter_recovery/**/*.png
+gaussian_process-interpolant/*.png

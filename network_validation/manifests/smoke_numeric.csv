@@ -1,0 +1,2 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon
+edge__g5e-05_l0.01_d10_e100__ECl__numeric,numeric,edge__g5e-05_l0.01_d10_e100__ECl,edge,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,100
