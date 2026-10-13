@@ -37,14 +37,17 @@ def main():
     rows = list(settings())
     outdir = Path(__file__).resolve().parent / "manifests"
     outdir.mkdir(exist_ok=True)
-    for name, methods in [("numeric", ["numeric"]), ("surrogate", SURROGATES)]:
+    interior = [r for r in rows if r["group"] == "interior"]
+    for name, methods, subset in [("numeric", ["numeric"], rows),
+                                  ("surrogate", SURROGATES, rows),
+                                  ("surrogate_interior", SURROGATES, interior)]:
         with open(outdir / f"{name}.csv", "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=COLS)
             w.writeheader()
             for m in methods:
-                for r in rows:
+                for r in subset:
                     w.writerow({**r, "method": m, "case_id": f"{r['setting_id']}__{m}"})
-        print(f"{name}.csv: {len(rows) * len(methods)} cases")
+        print(f"{name}.csv: {len(subset) * len(methods)} cases")
 
 
 if __name__ == "__main__":

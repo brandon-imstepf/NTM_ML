@@ -8,7 +8,8 @@
 #   SNTM_SMOKE=1 SNTM_OUT_DIR=$PWD/outputs_smoke sbatch --array=1 run_cases.slurm manifests/smoke_numeric.csv 1
 #
 # Array size = ceil(rows / CHUNK). Rerunning skips cases whose output exists.
-# Surrogate cases need Statistics Toolbox and run locally (run_local.m).
+# Surrogate cases run the same way (GP and NN-int. need the Statistics Toolbox):
+#   sbatch --array=1-200 run_cases.slurm manifests/surrogate.csv 1
 #SBATCH --job-name=sntm
 #SBATCH --partition=nodes
 #SBATCH --nodes=1
