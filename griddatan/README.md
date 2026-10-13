@@ -108,6 +108,12 @@ The parity rule, simplified from the earlier two-size plan:
    diagnostic-only re-run with standardized features improves but does not
    fix this (mean drops to 1.17, still a failure) — full detail in
    `STATUS.md`'s Milestone 9 entry.
+   **Joint (gamma1, lambda1) recovery at Milestone 10 fails the same way,
+   more starkly**: the 2-D loss surface is flat for the same reason, and
+   **997 of 1000 holdout rows (99.7%) recover a `(gamma1, lambda1)` that
+   is bit-identical** to one fixed point (the grid search's own starting
+   corner) regardless of the row's true values — full detail in
+   `STATUS.md`'s Milestone 10 entry.
 3. **Convex-hull boundary failure.** The existing draft (`interpolant.m`)
    already found `'linear'` produces `NaN` for query points outside the
    training convex hull, and dropped it in favor of `'nearest'`. This project
@@ -168,15 +174,25 @@ draft of this table was wrong for that reason.
 |---|---|---|
 | `s00_data_and_scaling_parity.m` | 2, 3 | Load identical train/val subsets + scaling constants; verify parity with GP side |
 | `s01_toy_validation.m` | 4 | Sanity-check `griddatan` on a synthetic function with a known answer |
-| `s02_fast_predictor.m` | 5 | Reusable `delaunayn`+`tsearchn` predictor, parity-tested against raw `griddatan` |
+| `s02_fast_predictor.m` | 5 | Reusable k-d tree predictor (`createns`/`knnsearch`), parity-tested against raw `griddatan` |
 | `s03_train_validate_models.m` | 6 | Full train+validate sweep, NMSE + bootstrap, saved per-run |
 | `s04_build_comparison_table.m` | 7 | Comparison CSV, joinable with the GP side's |
 | `s05_compare_nmse_boxplot.m` | 8 | Combined GP + griddatan NMSE visualization |
 | `s06_parameter_recovery_gamma.m` | 9 | Gamma recovery using the griddatan surrogate |
 | `s07_parameter_recovery_joint.m` | 10 | Joint (gamma, lambda) recovery |
-| `run_all.m` | 11 | Single entry point, clean-run reproducibility check |
+| `run_all.m` | 11 | Single entry point, clean-run reproducibility check (runs `s00`-`s08`) |
 | `s08_final_report.m` | 12 | Head-to-head GP vs. griddatan verdict |
 
 ## Status
 
-See `STATUS.md` for the live milestone log, including any failures.
+All 12 milestones complete, each independently adversarially reviewed.
+**Bottom line: griddatan does not work as a substitute for the GP
+surrogate on this data.** It loses on NMSE (worse than predicting the
+mean), on gamma recovery (off by ~34x on average vs. the GP's ~2x), and
+on joint recovery (99.7% of rows collapse to one fixed point — not a
+usable estimate). The root cause is confirmed, not just observed:
+griddatan's raw, unstandardized feature distance is dominated by
+delta/epsilon over gamma1/lambda1 by multiple orders of magnitude. See
+`STATUS.md` for the full milestone-by-milestone log, every number's
+provenance, and every bug found and fixed along the way; see
+`results/final_report.txt` for the final head-to-head report's full text.

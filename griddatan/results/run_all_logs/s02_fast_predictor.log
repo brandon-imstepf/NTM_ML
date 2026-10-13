@@ -1,0 +1,12 @@
+[Toy, interior] griddatan vs. fast predictor, max abs diff: 0
+[Toy, exterior] griddatan vs. fast predictor, max abs diff: 0
+[Real data] griddatan vs. fast predictor (flux, full validation set), max abs diff: 0
+
+One-time fit cost (3000 training rows): 0.029 s
+griddatan('nearest',...) cost for the WHOLE 1000-row validation batch: 33.828 s
+Fast predictor cost for the SAME whole batch (after one-time fit): 0.009 s
+
+500 repeated single-point queries via the fast predictor: 0.100 s total (0.0002 s/query)
+Calling griddatan fresh for each of those 500 single-point queries would cost roughly 500 x the 33.828 s one-shot-call time measured above (~16914 s) -- the reusable predictor turns an intractable recovery loop into a practical one.
+
+Milestone 5 PASSED: fast predictor is exact (diff=0) against raw griddatan, both on the toy problem and on real training/validation data.

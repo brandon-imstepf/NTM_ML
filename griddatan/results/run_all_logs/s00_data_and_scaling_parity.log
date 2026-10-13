@@ -1,0 +1,7 @@
+[Check 1 -- DIAGNOSTIC, NON-FATAL] saved_models/ corpus vs. bias_train_e3.csv (the pre-100k-superset pipeline's training file), max abs diff: 0 (0 confirms root cause; that corpus is not used as a parity target here either way)
+[Check 2] 3000-row subset vs. saved GP model X, max abs diff: 0
+[Check 3a] reconstructed flux prediction vs. saved gpr_flux_ypred, max abs diff: 0
+[Check 3b] reconstructed emc prediction vs. saved gpr_emc_ypred, max abs diff: 0
+Shared flux/emc scaling constants loaded from parameter_recovery/ (used from Milestone 9 onward).
+
+All parity checks PASSED.

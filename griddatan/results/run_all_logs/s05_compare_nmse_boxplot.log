@@ -1,0 +1,4 @@
+Saved both figures to C:\Users\USER\Documents\Code\NTM_ML\griddatan\figures
+griddatan reference line: flux NMSE = 1.8309, emc NMSE = 1.8158 (dataset_size=3000)
+All 307 GP configurations fall below the griddatan line in every facet (confirmed numerically at Milestone 7: GP's worst config still beats griddatan) --
+visually, griddatan sits far above the entire GP distribution on every facet, not just on average.

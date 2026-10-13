@@ -1,0 +1,30 @@
+Gamma recovery over all 1000 holdout rows: 1.49 s (0.0015 s/row)
+
+log_error_gamma over all 1000 rows: mean=1.5287, median=1.5091, std=0.8764
+(For reference: log_error_gamma=1 means the recovered gamma1 is off by a full
+decade from the true value -- this is the same statistic the GP side already
+computes, so it is directly comparable across both surrogate families.)
+
+--- Root-cause check: is griddatan's nearest-neighbor search blind to gamma1? ---
+Row 70: nearest-neighbor index for gamma1 in {5e-5, 0.001, 0.01, 0.05}: [976 976 976 976] (all identical: 1)
+Squared per-dimension distance contribution for that match: gamma1=3.33e-06, lambda1=5.07e-09, delta=0.333, epsilon=1.49, N1=5.07e-08, N2=1.22e-08
+ROOT CAUSE, confirmed: delta and epsilon (raw scale ~10-100) dominate the raw
+Euclidean distance by 5-6 orders of magnitude over gamma1 (~1e-5 to 5e-2). Changing
+gamma1 across its ENTIRE allowed range barely moves the distance at all, so the
+"nearest" training point is selected almost independently of gamma1 -- the fminbnd
+search above is optimizing over an essentially flat, noise-dominated loss surface.
+This is the mechanism behind both the catastrophic log_error_gamma above AND the
+NMSE>1 results already reported in Milestones 6-8: griddatan's raw-feature (not
+standardized) distance metric effectively ignores gamma1/lambda1/N1/N2 relative to
+delta/epsilon. This is a real, structural limitation of griddatan as actually built
+by interpolant.m and carried forward by this project for apples-to-apples parity --
+not a bug introduced here.
+
+--- Diagnostic only: standardized-feature k-d tree (NOT part of the committed pipeline) ---
+log_error_gamma (standardized features): mean=1.1717, median=1.0937 (vs. raw-feature mean=1.5287, median=1.5091)
+Standardizing features substantially improves recovery -- confirms the root cause above.
+
+Full per-row recovery results saved to results/gamma_recovery_full.csv
+Saved 10 illustrative recovery plots to C:\Users\USER\Documents\Code\NTM_ML\griddatan\figures\gamma_recovery
+
+Milestone 9 complete.

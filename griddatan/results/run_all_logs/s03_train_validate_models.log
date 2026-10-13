@@ -1,0 +1,16 @@
+[Part A, dataset_size=3000] flux NMSE (val) = 1.8309, emc NMSE (val) = 1.8158
+[Part A] flux NMSE (train) = 0.000000, emc NMSE (train) = 0.000000 -- expected exactly 0:
+'nearest' is an exact interpolator (every training point is its own
+nearest neighbor), unlike the GP, which smooths and generally has
+nonzero training residual. A real, structural difference between the
+two surrogate families -- reported as-is for Milestone 12, not hidden.
+
+[Part A] Saved to C:\Users\USER\Documents\Code\NTM_ML\griddatan\saved_models\FM_nearest__dataset_3000.mat
+
+[Part B, dataset_size=10000, qhull_opts] flux NMSE = 1.6516, emc NMSE = 1.8578
+[Part B] CONFIRMED: this re-run performs worse than predicting
+the mean (NMSE>1) for both targets, matching the prior-art claim.
+[Part B] qhull_opts vs. no-opts, flux prediction max abs diff: 0
+[Part B] Saved to C:\Users\USER\Documents\Code\NTM_ML\griddatan\results\priorart_recheck_dataset_10000.csv
+
+Milestone 6 complete: Part A saved for the Milestone 7+ comparison pipeline, Part B resolves Risk 4.

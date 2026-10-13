@@ -9,6 +9,274 @@ Verdict legend: **PASS** / **PASS WITH CAVEATS** / **BLOCKED-FAILED** / **IN PRO
 
 ---
 
+## Milestone 12 — Final head-to-head report
+
+**Status:** PASS WITH CAVEATS (final). The caveat is the same one carried
+through the whole project: griddatan loses decisively, reported as the
+honest result, not a shortcoming of the report.
+
+**What was done:** `s08_final_report.m` synthesizes Milestones 6-10's
+already-saved results into one head-to-head comparison, with one new
+computation: the GP side's **full-dataset** gamma-recovery accuracy was
+never persisted to disk by `synthetic_parameter_recovery_gp.m` (read-only
+reference) — that script computes `log_error_gamma` in memory but only
+ever uses it to pick its best-10 rows to plot, never saves the aggregate.
+This milestone reproduces that same existing computation (identical
+formula, identical full 1000-row holdout, same GP model
+`FM_exact__BF_linear__KF_ARDMatern32__OPT_fminunc`, read-only against its
+saved `.mat`) so the comparison is genuinely apples-to-apples on full
+datasets on both sides, not griddatan-full-dataset-vs-GP-best-10. Result
+saved to `results/gp_gamma_recovery_full_reference.csv`. A transcript of
+the full report is saved to `results/final_report.txt` via `diary()`.
+
+**Headline numbers, all pulled from already-adversarially-reviewed
+milestones except the newly-added GP gamma-recovery figure (not yet
+independently reviewed — see below):**
+
+| Axis | GP | griddatan |
+|---|---|---|
+| Flux NMSE (dataset_size=3000) | best 0.00736, worst 0.31015, median 0.29619 (307 configs) | 1.8309 (1 config) |
+| Rank among all 308 configs | 1-307 | **308 (dead last)** |
+| Gamma recovery, full 1000-row holdout | mean log_error_gamma = **0.2942** (median 0.0687) | mean = **1.5287** (median 1.5091) |
+| Joint recovery, full 1000-row holdout | not computed (see caveat) | mean log_error_joint = 1.5721; 997/1000 rows collapse to one fixed point |
+| "Training" wall time (one model) | 295.64 s (`fitrgp`, this model) | ~0.02-0.04 s (k-d tree fit) |
+
+Even GP's single *worst* config (out of 307) beats griddatan's NMSE by
+5.9x; GP's best beats it by 249x. On gamma recovery, GP is off by a mean
+of 0.29 decades (~2.0x) vs. griddatan's 1.53 decades (~34x) on the
+identical holdout set.
+
+**Caveats stated plainly, not hidden:**
+- The GP side's OWN 1000-combination grid-search NMSE comparison
+  (`visualize_gp.m`, the unsuffixed `saved_models/`) is NOT used anywhere
+  in this report — its training-data provenance could not be verified
+  (Milestone 1). Every GP number here comes only from the verified
+  `saved_models_superset_3000/` corpus (307 configs).
+- GP-side joint (gamma,lambda) recovery was **not computed** for this
+  report (scope/time: a 1000-row x 2500-point grid-search+polish via
+  `predict()` is substantially larger than the gamma-only pass). The
+  report explicitly says GP joint recovery is *expected* to also
+  outperform griddatan given the other results, but states this is not an
+  independently verified number and should not be quoted as one.
+- griddatan's raw (non-fast-predictor) per-query cost was never
+  benchmarked head-to-head against GP's `predict()` at the single-query
+  level; the report notes this rather than implying a comparison that
+  wasn't actually measured.
+
+**Root cause recap, carried into the final verdict rather than just
+asserted:** griddatan's raw, unstandardized feature distance is dominated
+by delta/epsilon (scale ~10-100) over gamma1/lambda1 (scale ~1e-5 to
+1e-1) — independently confirmed at Milestones 9 and 10, not a tuning
+problem but a structural one inherent to how griddatan (as this project's
+own `interpolant.m` originally built it) computes nearest-neighbor
+distance.
+
+**Adversarial review:** complete (independent agent). Verdict: **PASS** —
+"the strongest-verified milestone of the series" in the reviewer's words.
+The one genuinely new computation (GP full-dataset gamma recovery) was
+reproduced via a fully independent from-scratch script: a full 1000-row
+rerun matched mean=0.2942/median=0.0687 to 4 decimals, and a row-level
+cross-check against the saved CSV found max abs diff = 5.03e-17 (pure
+floating-point noise). The GP model file and its `wall_time=295.6444s`
+field were confirmed genuine (not stale). Every table number (NMSE
+best/worst/median, rank 308/308, griddatan's gamma/joint figures) was
+independently recomputed and matched exactly, including a second,
+independent method for the rank calculation. All four final-verdict
+multipliers (5.9x, 249x, ~34x, ~2.0x) were recomputed by hand and
+confirmed correct. Grepped the script directly to confirm it never reads
+the unverified `gp_comparison_results.csv` corpus despite referencing it
+only in a caveat — the caveat is enforced in code, not just claimed in
+a comment. `results/final_report.txt` confirmed to contain the complete
+transcript. No scope violations, no overclaiming, no softened or spun
+language found. One unrelated observation (not a violation): `git status`
+showed concurrent, unrelated changes to `network_validation/` files
+(an ODE-tolerance env-var override) made the same day — confirmed no
+griddatan script references that folder; flagged for the user's own
+awareness, outside this project's scope to act on.
+
+---
+
+## Milestone 11 — End-to-end reproducibility (`run_all.m`)
+
+**Status:** PASS WITH CAVEATS (final)
+
+**What was done:** `run_all.m` runs all 8 scripts built so far
+(`s00` through `s07`) in dependency order from a genuinely clean state.
+Each script is spawned as its own fresh `matlab -batch` subprocess rather
+than chained as plain script calls in one shared workspace — every
+`s##_*.m` script starts with `clc; clear;`, and a script-calling-a-script
+shares one workspace in MATLAB (unlike a function call), so chaining them
+directly would have each script's own `clear` wipe out `run_all.m`'s own
+loop state. Spawning a subprocess per script sidesteps that and is a
+stronger clean-session test besides: it proves each script works from
+nothing, not just that it survives running right after another script
+already populated the workspace.
+
+**Result: full pipeline reproduces cleanly, all 8/8 scripts passed:**
+
+| Script | Exit code | Wall time |
+|---|---|---|
+| `s00_data_and_scaling_parity` | 0 | 10.9-13.5 s |
+| `s01_toy_validation` | 0 | 205.4-252.1 s |
+| `s02_fast_predictor` | 0 | 113.1-114.0 s |
+| `s03_train_validate_models` | 0 | 714.7-742.6 s |
+| `s04_build_comparison_table` | 0 | 9.8-12.3 s |
+| `s05_compare_nmse_boxplot` | 0 | 39.0-41.9 s |
+| `s06_parameter_recovery_gamma` | 0 | 73.9-74.5 s |
+| `s07_parameter_recovery_joint` | 0 | 72.3-85.7 s |
+| **Total** | — | **1258-1318 s (~21-22 min), across 3 independent full runs** |
+
+`s03`'s 742.6 s is expected, not a regression: its Part B calls raw
+`griddatan` (not the fast predictor) four times on the 10,000-row corpus,
+each individually slow (30-200s, consistent with every other raw
+`griddatan` timing measured since Milestone 4).
+
+**Every number re-verified identical to its original milestone run** —
+spot-checked against this log: Milestone 2/3's parity diffs (all 0),
+Milestone 5's exact-parity diffs (all 0), Milestone 6's NMSE (1.8309 /
+1.8158 / 1.6516 / 1.8578), Milestone 7's ranking (309/309, 249x, 5.9x),
+Milestone 9's `log_error_gamma` (1.5287 / 1.1717 diagnostic), Milestone
+10's corner-collapse (997/1000) — all bit-identical to the values already
+committed to this document. Nothing drifted on a from-scratch re-run.
+
+Saved to `results/run_all_summary.csv` and per-script logs in
+`results/run_all_logs/`.
+
+**Adversarial review:** complete (independent agent). Verdict: **PASS
+WITH CAVEATS**. The 8/8 pass, bit-identical numbers, clean subprocess
+isolation (watched via `tasklist` across the whole run), and path
+independence (spot-checked `s00`/`s03`/`s04`/`s06`/`s07`) were all
+independently reconfirmed via the reviewer's own full `matlab -batch
+"run_all"` re-run (1178.9s, same shape, same bottleneck script). The
+"`clear` wipes the caller's workspace" design rationale was empirically
+demonstrated, not just taken on faith, with a minimal parent/child test.
+
+**Real bug found and fixed:** the original log-capture mechanism
+(`system('matlab -batch "name" > log.txt 2>&1')`, shell-level redirect
+around a nested `matlab -batch` call) silently never wrote anything —
+confirmed by the reviewer three independent ways (a standalone
+good/bad-child synthetic test, watching `results/run_all_logs/` stay
+empty through an entire real run, and isolating the failure to nested
+`matlab -batch` specifically, not `system()` redirection in general).
+Exit-code capture was unaffected; only the log artifact was silently
+missing, while STATUS.md had claimed it as verification evidence
+("spot-checked against this log") — a real, if narrow, overclaim.
+**Fixed** by switching to the two-output form of `system()`
+(`[status, cmdout] = system(cmd)`), which captures the subprocess's
+combined stdout/stderr directly into a MATLAB variable regardless of
+shell-level redirection, then writing `cmdout` to the log file explicitly
+via `fopen`/`fprintf`/`fclose`. Verified working: a targeted sanity check
+confirmed a populated log file before committing to a full re-run, then a
+full `run_all.m` re-run (results above) produced all 8 log files in
+`results/run_all_logs/` with correct, readable content (spot-checked
+`s06`'s log directly). Also addressed two minor code-quality items from
+the same review: wrapped the `system()`/log-write block in `try`/`catch`
+so `cd(old_dir)` always runs even if something throws (re-thrown, not
+swallowed), and added an explicit comment acknowledging `run_all.m` has
+no subprocess-timeout/hang protection (a real but accepted limitation
+given every script currently completes in well under 15 minutes). No
+scope violations by the reviewer; unrelated pre-existing changes in
+`network_validation/` were present before the review started and are not
+attributable to this milestone.
+
+---
+
+## Milestone 10 — Joint (gamma, lambda) recovery port
+
+**Status:** PASS WITH CAVEATS (final). Same framing as Milestone 9: the
+engineering is sound, the recovery RESULT is a clear failure, reported
+plainly.
+
+**What was done:** `s07_parameter_recovery_joint.m` ports
+`synthetic_parameter_recovery_gp.m`'s `jointRecoveryFit`/`jointRecoveryPlot`
+(read-only reference): a 50x50 log-spaced (gamma1, lambda1) grid, coarse
+grid-search for a starting point, `fminsearch` polish in log-space. Run
+over the **full** 1000-row holdout set — a deliberate deviation from the
+GP script, which only covers its first 100 rows (`size(dataset,1)/10`) as
+a performance shortcut; griddatan's fast predictor (Milestone 5) makes
+that shortcut unnecessary here.
+
+**Predicted outcome, stated before running, then checked rather than
+assumed:** Milestone 9 found griddatan's nearest-neighbor search
+functionally blind to gamma1 because delta/epsilon's raw scale dominates
+distance. Since lambda1's raw scale (~0.01-0.1) is just as dwarfed, the
+same mechanism predicts the 2-D (gamma1, lambda1) loss surface will also
+be a flat plateau. Confirmed true.
+
+| Statistic | Value |
+|---|---|
+| mean `log_error_joint` (1000 rows) | **1.5721** |
+| median `log_error_joint` | **1.5443** |
+| std | 0.7919 |
+| Recovery wall time | 6.2-7.3 s for all 1000 rows (~0.007 s/row) |
+| Rows collapsed to the grid's starting corner | **997/1000 (99.7%)** |
+| Rows landing on the physical range boundary (gamma or lambda) | 0/1000 (a different, looser check — see below) |
+
+**Confirmed directly, not just inferred:** all 10 illustrative plots (the
+best-10 rows by `log_error_joint`) show a **completely flat** 50x50 loss
+heatmap — a single solid color across the entire grid, log10(squared
+error) varying by less than the plot's own color resolution. `contour()`
+had nothing to draw on any of them (see bug below).
+
+**"Best 10" selection is not genuine recovery — independently confirmed,
+not just deduced:** on a genuinely flat loss surface, `min()`
+deterministically returns the *first* tied index in column-major order —
+i.e. `(gamma_grid(1), lambda_grid(1))`, the grid's own
+smallest-gamma/smallest-lambda corner — regardless of the actual data.
+Confirmed directly (now also checked in-script, see the added
+`collapsed_to_corner` diagnostic): **997 of all 1000 holdout rows recover
+a `(gamma1, lambda1)` that is bit-identical to that one fixed corner** —
+only 4 unique `recovered_gamma1` values exist across the entire 1000-row
+output. The "best 10 by error" rows are therefore not genuine successful
+recoveries — they are simply the holdout rows whose TRUE (gamma1,
+lambda1) happen by coincidence to be closest (in log-space) to that one
+fixed point (e.g. row 516: true=(5.999e-5, 1.018e-2) vs. corner
+(5.764e-5, 1.013e-2) → small error; row 822: true further away → larger
+error). Only 3 of 1000 rows (568, 657, 699, all with unusually small true
+gamma1) landed anywhere else, 2-2.8 decades off the corner.
+
+**Bug found and fixed:** the first run's `std_log_loss > 0` flatness check
+was too strict — floating-point jitter left `std_log_loss` tiny but
+nonzero, so the code attempted to draw contour lines anyway. MATLAB's
+`contour()` has its own near-equality tolerance for "constant data" and
+silently skipped drawing anyway, firing a warning on every one of the 30
+contour calls (10 plots x 3 contour levels) AND leaving the legend with
+two entries ("mean log-loss", "mean ± 1σ log-loss") pointing at lines that
+were never drawn. Fixed with a relative tolerance
+(`std_log_loss < 1e-6 * max(|mean_log_loss|,1)`) and, when flat, skipping
+the contour calls entirely (not just letting them fail silently) and
+showing an on-plot text note instead — confirmed clean re-render, zero
+warnings, no dangling legend entries.
+
+**Full per-row results** saved to `results/joint_recovery_full.csv` (1000
+rows), 10 illustrative plots saved to `figures/joint_recovery/`.
+
+**Adversarial review:** complete (independent agent). Verdict: **PASS
+WITH CAVEATS**. Every claim independently reproduced via a fully separate
+code path, including the single most important one (corner-collapse):
+reconstructed `gamma_grid(1)`/`lambda_grid(1)` from scratch and checked
+all 1000 CSV rows directly (not just the best-10), confirming 997/1000
+bit-identical to the corner — the review found this story *stronger* than
+originally written, not weaker, and recommended upgrading the language
+from "deduction, pending verification" to a confirmed fact, which this
+entry now does. Headline stats matched to 1e-14 (float noise only) via an
+independent sample and a from-scratch CSV recomputation (cross-checked in
+Python, not just MATLAB). The flat-surface finding was confirmed on 8
+additional rows never in the original best-10 (std of log10-loss
+2.8e-17-8.9e-16 — genuinely flat, not cherry-picked). The contour-warning
+fix was confirmed clean (zero warnings on a full re-run). **One fix
+applied from review:** the "0/1000 at range boundary" check tests against
+`gamma1_range`/`lambda_range` (the physical parameter bounds), a
+different and much looser reference than `gamma_grid(1)`/`gamma_grid(end)`
+(the actual corner recovery collapses to) — the original in-code comment
+did not make this distinction clearly enough and could have misled a
+future reader into thinking that check captured the corner-collapse
+story. Added a proper `collapsed_to_corner` diagnostic (now 997/1000 is
+computed directly in-script, not only in this document) and reworded both
+comments to distinguish the two checks explicitly. No scope violations.
+
+---
+
 ## Milestone 9 — Gamma-recovery port
 
 **Status:** PASS WITH CAVEATS (final). "Pass" refers to the engineering

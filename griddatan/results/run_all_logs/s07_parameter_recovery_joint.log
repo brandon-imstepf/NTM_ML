@@ -1,0 +1,11 @@
+Joint recovery over all 1000 holdout rows: 5.73 s (0.0057 s/row)
+
+log_error_joint over all 1000 rows: mean=1.5721, median=1.5443, std=0.7919
+Rows where recovery collapsed to the grid's starting corner (gamma_grid(1), lambda_grid(1)): 997/1000 (99.7%)
+Rows where recovered gamma1 landed on its range boundary: 0/1000 (0%)
+Rows where recovered lambda1 landed on its range boundary: 0/1000 (0%)
+
+Full per-row joint recovery results saved to results/joint_recovery_full.csv
+Saved 10 illustrative joint-recovery plots to C:\Users\USER\Documents\Code\NTM_ML\griddatan\figures\joint_recovery
+
+Milestone 10 complete.

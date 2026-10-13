@@ -75,11 +75,25 @@ log_error_joint = sqrt((log10(refined_gamma1_joint) - log10(dataset(:,1))).^2 + 
 fprintf('\nlog_error_joint over all %d rows: mean=%.4f, median=%.4f, std=%.4f\n', ...
     n_rows, mean(log_error_joint), median(log_error_joint), std(log_error_joint));
 
-% Did the grid search actually land ON the grid's own boundary for most
-% rows -- a telltale sign the loss surface is flat and the "minimum" is
-% arbitrary (whatever corner the grid or fminsearch happened to settle
-% on), not a real optimum. Checked directly rather than only inferred from
-% the error statistic.
+% Does recovery collapse to the SAME point regardless of input data -- the
+% real telltale sign of a flat loss surface, checked directly against the
+% grid's own starting corner (gamma_grid(1), lambda_grid(1)), not against
+% the physical parameter range endpoints (gamma1_range/lambda_range) below.
+% These are different reference points: gamma_grid(1) is just the smallest
+% of 50 random log-uniform draws, strictly interior to gamma1_range, not
+% the range boundary itself -- confirmed at Milestone 10's adversarial
+% review, which found 997/1000 rows recover a value bit-identical to this
+% corner (only 4 unique recovered_gamma1 values across all 1000 rows).
+collapsed_to_corner = abs(refined_gamma1_joint - gamma_grid(1)) < 1e-9*gamma_grid(1) & ...
+    abs(refined_lambda_joint - lambda_grid(1)) < 1e-9*lambda_grid(1);
+fprintf('Rows where recovery collapsed to the grid''s starting corner (gamma_grid(1), lambda_grid(1)): %d/%d (%.1f%%)\n', ...
+    sum(collapsed_to_corner), n_rows, 100*mean(collapsed_to_corner));
+
+% Separately: did the grid search land ON the PHYSICAL parameter range's
+% own boundary (gamma1_range/lambda_range, the hard limits passed to
+% fminbnd's clamp) -- a different, looser check than the corner-collapse
+% one above. Low here does not mean recovery succeeded; see the
+% corner-collapse check above for the real story.
 at_gamma_boundary = abs(refined_gamma1_joint - gamma1_range(1)) < 1e-6*gamma1_range(1) | ...
     abs(refined_gamma1_joint - gamma1_range(2)) < 1e-6*gamma1_range(2);
 at_lambda_boundary = abs(refined_lambda_joint - lambda_range(1)) < 1e-6*lambda_range(1) | ...

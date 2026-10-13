@@ -42,8 +42,10 @@ if ~isempty(getenv('SNTM_SMOKE')) % short horizon for pipeline tests
     cfg.trange = 0:0.0025:0.01;
 end
 cfg.resmesh = 'coarse';
-cfg.reltol = 1e-4;
-cfg.abstol = 1e-4;
+% ODE tolerances; SNTM_RELTOL / SNTM_ABSTOL override them for settings where the
+% steady-state solve fails at the defaults (each output stores the cfg it used)
+cfg.reltol = str2double(getenv_default('SNTM_RELTOL', '1e-4'));
+cfg.abstol = str2double(getenv_default('SNTM_ABSTOL', '1e-4'));
 cfg.fsolvetol = 1e-6;
 cfg.init_rescale = 1e-2;
 cfg.study = 'Hurtado';

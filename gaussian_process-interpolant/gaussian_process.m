@@ -15,7 +15,7 @@ training_superset = readmatrix(tr_filepath);
 % subset data based off seed
 training_seed = 42;
 rng(training_seed)
-dataset_size = 3000;
+dataset_size = 5000;
 training_idx = randperm(100000,dataset_size);
 training_dataset = training_superset(training_idx,:);
 

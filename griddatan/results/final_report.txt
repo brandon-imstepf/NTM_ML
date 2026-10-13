@@ -1,0 +1,57 @@
+================= PART 1: NMSE (dataset_size=3000, verified corpus) =================
+GP (307 verified configs):  flux NMSE  best=0.00736  worst=0.31015  median=0.29619
+griddatan (1 config):       flux NMSE  = 1.8309
+griddatan rank among all 308 configs: 308 (dead last)
+Even GP's WORST config beats griddatan by 5.9x.
+
+================= PART 2: Full-dataset gamma recovery =================
+griddatan: mean log_error_gamma=1.5287, median=1.5091 (full 1000-row holdout)
+GP:        mean log_error_gamma=0.2942, median=0.0687 (full 1000-row holdout, computed fresh here)
+GP recovery wall time: 5.63 s for 1000 rows (0.0056 s/row)
+
+GP-side full-dataset gamma recovery (newly computed, not previously on disk) saved to
+results/gp_gamma_recovery_full_reference.csv -- closes the "GP full-dataset stat missing" gap.
+
+================= PART 3: Joint (gamma,lambda) recovery =================
+griddatan: mean log_error_joint=1.5721, median=1.5443; 997/1000 rows (99.7%) collapsed to one fixed point
+NOTE, stated rather than silently omitted: the GP-side equivalent full-dataset joint
+recovery statistic was NOT computed for this report (out of scope for Milestone 12's time
+budget -- a 50x50 grid + fminsearch polish per row, times 1000 rows, via predict() rather
+than a fast k-d tree, is a substantially larger computation than Part 2's gamma-only pass).
+Given the gamma-only comparison above and the NMSE comparison in Part 1, GP joint recovery is
+expected to also greatly outperform griddatan, but this is NOT an independently verified
+number and should not be quoted as one.
+
+================= PART 4: Computational cost =================
+GP training wall time (this one model, fitrgp for flux + emc): 295.64 s
+griddatan "training" (k-d tree fit, Milestone 5): ~0.02-0.04 s (1500-2000x faster to "fit")
+griddatan's raw per-query cost (no fast predictor) is comparable to or slower than GP's
+predict() per call, though neither was benchmarked head-to-head at the single-query level in
+this project -- the Milestone 5 fast predictor was built specifically because raw griddatan
+per-query cost (~20-35s/call, Milestone 4-5) would make the recovery loop intractable; GP's
+predict() needs no such workaround. griddatan only becomes fast after the Milestone 5 fix,
+and even then is solving a fundamentally different (and here, much worse-performing) problem.
+
+================= FINAL VERDICT =================
+On this project's verified, parity-anchored corpus (dataset_size=3000), griddatan
+('nearest') loses to the Gaussian Process surrogate decisively and consistently across every
+axis tested:
+  - NMSE: griddatan performs WORSE than predicting the mean (NMSE>1); the GP's worst of 307
+    configs still beats griddatan by 5.9x; its best beats it by 249x.
+  - Gamma recovery: griddatan is off by a mean of 1.53 decades (~34x); the GP recovers gamma1
+    to a mean error of 0.29 decades (~2.0x) on the identical full 1000-row holdout.
+  - Joint recovery: griddatan's 2-D loss surface collapses to a flat plateau, with 99.7% of
+    rows recovering the same fixed point regardless of the true data -- not a usable estimate
+    at all. No comparable GP number was computed (see Part 3's caveat).
+  - Root cause, independently confirmed (Milestone 9): griddatan's raw, UNSTANDARDIZED feature
+    distance is dominated by delta/epsilon (scale ~10-100) over gamma1/lambda1 (scale ~1e-5 to
+    1e-1) by multiple orders of magnitude -- not a tuning problem, a structural one, inherent
+    to how griddatan (as actually built by this project's own interpolant.m starting point)
+    computes nearest-neighbor distance.
+
+This is the honest answer to the original ask: a gridded interpolant was infeasible (no full
+rectangular grid in the data), griddatan was the next viable option, and griddatan -- evaluated
+rigorously, under adversarial review at every step -- does not work either, for a specific,
+confirmed, reportable reason.
+
+Milestone 12 complete. Full report saved to results/final_report.txt

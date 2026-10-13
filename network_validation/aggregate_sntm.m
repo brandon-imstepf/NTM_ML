@@ -11,12 +11,20 @@ function aggregate_sntm(out_dir)
 %   r2_identity  1 - SS_res/SS_tot against the y = x line (penalises bias)
 %   slope0       least-squares slope of surrogate on numeric through the origin
 %   r2_origin    R^2 of that through-origin fit
-%   nrmse        ||s - n|| / ||n||
+%   nmse         sum (s - n)^2 / sum n^2   (Eq. 7 of the paper)
 %   max_rel_err  max_i |s_i - n_i| / max(n)
+%   num_cv       std/mean of numeric N across regions (how much spatial
+%                pattern there is to predict; R^2 at one time point is
+%                unstable when this is near zero)
+% Per case:
+%   r2_pooled, nmse_pooled   all regions and time points at once
+%   r2_ss_median             median over time points from SS_DAYS on of r2_identity
+%   r2_ss_pooled, nmse_ss    all regions and time points from SS_DAYS on at once
 
 if nargin < 1, cfg = sntm_config(); out_dir = cfg.out_dir; else, cfg = sntm_config(); end
 sum_dir = fullfile(out_dir, 'summary');
 if ~isfolder(sum_dir), mkdir(sum_dir); end
+SS_DAYS = 120; % "steady state": from month 4 on
 
 files = dir(fullfile(out_dir, '*.mat'));
 meta = cell(numel(files), 1);
@@ -43,12 +51,18 @@ for k = find(~is_num)
     base = struct2table(meta(k), 'AsArray', true);
     rows_t{end+1} = [repmat(base, numel(days), 1), table(days), struct2table(m)]; %#ok<AGROW>
     finite = isfinite(m.r2_identity);
+    sv = s.N(:, 2:nt); nv = n.N(:, 2:nt);
+    ss = days >= SS_DAYS;
+    [r2_pooled, nmse_pooled] = pooled_metrics(sv, nv);
+    [r2_ss_pooled, nmse_ss] = pooled_metrics(sv(:, ss), nv(:, ss));
     rows_c{end+1} = [base, table( ...
+        r2_pooled, nmse_pooled, median(m.r2_identity(ss)), r2_ss_pooled, nmse_ss, ...
         min(m.r2_identity), median(m.r2_identity(finite)), m.r2_identity(end), ...
-        median(m.slope0), max(m.nrmse), m.nrmse(end), any(~isfinite(s.N(:))), ...
+        median(m.slope0), max(m.nmse), m.nmse(end), any(~isfinite(s.N(:))), ...
         s.runtime_s, n.runtime_s, n.runtime_s / s.runtime_s, ...
-        'VariableNames', {'r2_min', 'r2_median', 'r2_final', 'slope0_median', 'nrmse_max', ...
-        'nrmse_final', 'nonfinite', 'runtime_s', 'numeric_runtime_s', 'speedup'})]; %#ok<AGROW>
+        'VariableNames', {'r2_pooled', 'nmse_pooled', 'r2_ss_median', 'r2_ss_pooled', 'nmse_ss', ...
+        'r2_min', 'r2_median', 'r2_final', 'slope0_median', 'nmse_max', ...
+        'nmse_final', 'nonfinite', 'runtime_s', 'numeric_runtime_s', 'speedup'})]; %#ok<AGROW>
 end
 if ~isempty(rows_t)
     writetable(vertcat(rows_t{:}), fullfile(sum_dir, 'accuracy_by_time.csv'));
@@ -80,13 +94,20 @@ end
 
 function m = per_time_metrics(S, N)
 nt = size(N, 2);
-[m.r2_identity, m.slope0, m.r2_origin, m.nrmse, m.max_rel_err] = deal(nan(nt, 1));
+[m.r2_identity, m.slope0, m.r2_origin, m.nmse, m.max_rel_err, m.num_cv] = deal(nan(nt, 1));
 for t = 1:nt
     s = S(:, t); n = N(:, t);
     m.r2_identity(t) = 1 - sum((s - n).^2) / sum((n - mean(n)).^2);
     m.slope0(t) = (n' * s) / (n' * n);
     m.r2_origin(t) = 1 - sum((s - m.slope0(t) * n).^2) / sum(s.^2);
-    m.nrmse(t) = norm(s - n) / norm(n);
+    m.nmse(t) = sum((s - n).^2) / sum(n.^2);
     m.max_rel_err(t) = max(abs(s - n)) / max(n);
+    m.num_cv(t) = std(n) / mean(n);
 end
+end
+
+function [r2, nmse] = pooled_metrics(S, N)
+% R^2 against y = x and NMSE (Eq. 7) over all entries of S and N together
+r2 = 1 - sum((S(:) - N(:)).^2) / sum((N(:) - mean(N(:))).^2);
+nmse = sum((S(:) - N(:)).^2) / sum(N(:).^2);
 end

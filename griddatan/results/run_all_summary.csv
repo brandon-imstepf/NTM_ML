@@ -1,0 +1,10 @@
+script,exit_code,wall_time_s
+s00_data_and_scaling_parity,0,13.4916737
+s01_toy_validation,0,242.4174211
+s02_fast_predictor,0,114.622572
+s03_train_validate_models,0,618.04509
+s04_build_comparison_table,0,9.9274556
+s05_compare_nmse_boxplot,0,36.1883453
+s06_parameter_recovery_gamma,0,59.5622879
+s07_parameter_recovery_joint,0,64.7607789
+s08_final_report,0,16.9037699

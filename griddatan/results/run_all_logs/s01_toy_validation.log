@@ -1,0 +1,9 @@
+[nearest, interior] NMSE = 0.116659, wall time = 32.3 s (2000 train x 500 query, 6-D)
+[linear, interior] NaN count: 192 / 500 (38.4%), wall time = 164.8 s
+[linear, interior] NMSE (excluding NaN): 0.00314586
+[linear, exterior] NaN count: 500 / 500 (100.0%), wall time = 38.3 s
+
+--- Milestone 4 verdict ---
+CONFIRMED: 'linear' griddatan poisons output with NaN for query points outside the training convex hull in 6-D, matching interpolant.m's original finding. 'nearest' has no such failure mode (always returns a value) and is the only method carried forward past this milestone.
+ADDITIONAL FINDING: 'linear' also fails for a substantial fraction (38.4%) of points sampled INSIDE the training bounding box -- in 6-D, a random point cloud's convex hull covers much less volume than its bounding box, so "interior to the box" does not imply "interior to the hull." This is expected to transfer directly to the real 6-D validation set at Milestone 6.
+Total griddatan wall time for this toy problem (2000 train points): 235.4 s across 3 calls. Scaling behavior as training size grows is the subject of Milestone 5 (the reusable triangulation-based predictor).

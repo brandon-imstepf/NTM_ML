@@ -7,6 +7,13 @@
 # Smoke test first (4 time steps, separate output folder; sbatch passes env vars):
 #   SNTM_SMOKE=1 SNTM_OUT_DIR=$PWD/outputs_smoke sbatch --array=1 run_cases.slurm manifests/smoke_numeric.csv 1
 #
+# init_rescale comparison (interior grid at 0.002, plus the Fig. 8 setting at 0.002 and 0.01):
+#   sbatch --array=1-26 run_cases.slurm manifests/rescale_numeric.csv 1
+#   sbatch --array=1-130%40 run_cases.slurm manifests/rescale_surrogate.csv 1
+#
+# Tighter ODE tolerances for rows whose steady-state solve fails at the defaults:
+#   SNTM_RELTOL=1e-6 SNTM_ABSTOL=1e-8 sbatch --array=28-30,34,36-38 run_cases.slurm manifests/numeric.csv 1
+#
 # Array size = ceil(rows / CHUNK). Rerunning skips cases whose output exists.
 # Surrogate cases run the same way (GP and NN-int. need the Statistics Toolbox):
 #   sbatch --array=1-200 run_cases.slurm manifests/surrogate.csv 1

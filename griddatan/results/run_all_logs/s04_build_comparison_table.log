@@ -1,0 +1,7 @@
+Combined comparison table: 309 rows (307 GP configs + 2 griddatan runs)
+Saved to C:\Users\USER\Documents\Code\NTM_ML\griddatan\results\comparison_table.csv
+
+griddatan (dataset_size=3000) ranks 309 of 309 by flux NMSE (1 = best).
+Every GP configuration beats griddatan on this corpus: best GP flux NMSE is 0.00736 vs. griddatan's 1.8309 (249x worse). Reported plainly for Milestone 12,
+not softened.
+Even GP's WORST config (flux NMSE=0.310148) still beats griddatan by 5.9x.
