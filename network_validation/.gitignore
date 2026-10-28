@@ -3,3 +3,4 @@ outputs_smoke/
 logs/*
 !logs/.gitkeep
 outputs_recovery/
+outputs_nm/

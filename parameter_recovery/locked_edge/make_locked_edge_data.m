@@ -16,6 +16,7 @@ function make_locked_edge_data(sets_file, first_row, last_row, ncores)
 %   make_locked_edge_data('locked_sets.csv', 1, 3, 8)   % rows 1-3, 8 cores
 %
 %   sets_file  CSV with columns set_id, gamma1, lambda1, delta, epsilon, n_grid, N_max
+%              (optional column flux_lambda2; see step 4c)
 %   first_row, last_row  which data rows of sets_file to run (header not counted)
 %   ncores     optional. 0 or omitted = one point at a time. N > 0 = run the
 %              grid points in parallel on N MATLAB workers (parfor). The pool
@@ -84,6 +85,7 @@ for r = first_row:last_row
     % 4b. Build the (N1, N2) grid.
     % Nv = n_grid evenly spaced values from 0 to N_max. ndgrid makes every
     % (N1, N2) combination of them; (:) flattens each into a column, so row k
+    
     % of [N1, N2] is the k-th grid point.
     n_grid = s.n_grid; if smoke, n_grid = 3; end
     Nv = linspace(0, s.N_max, n_grid);
@@ -93,10 +95,24 @@ for r = first_row:last_row
     fprintf('[%s] gamma1=%g lambda1=%g delta=%g epsilon=%g  %d points, N in [0, %g]\n', ...
         s.set_id, s.gamma1, s.lambda1, s.delta, s.epsilon, np, s.N_max);
 
-    % 4c. Full argument list for the simulator: fixed settings + this set's
-    % locked parameters (lambda2 is kept equal to lambda1, as in training)
-    a = [fixed, {'gamma1', s.gamma1, 'lambda1', s.lambda1, 'lambda2', s.lambda1, ...
-        'delta', s.delta, 'epsilon', s.epsilon}];
+    % 4c. Argument lists for the simulator: fixed settings + this set's
+    % locked parameters.
+    % lambda2: the training data (data_bias_e5_*.csv, bias_*_e3.csv) were made
+    % by the parfor branch of NetworkTransportModel_SingleEdge_AllParams.m,
+    % whose flux call leaves lambda2 out, so the simulator default 0.01 was
+    % used for the flux; its W1 call passes lambda2 = lambda1. The surrogates
+    % learned that. To match, the flux call here uses flux_lambda2 (default
+    % 0.01) and the W1 call uses lambda2 = lambda1. An optional sets_file
+    % column flux_lambda2 overrides it (NaN there = use lambda1).
+    flux_lambda2 = 0.01;
+    if ismember('flux_lambda2', S.Properties.VariableNames) && ~ismissing(s.flux_lambda2)
+        flux_lambda2 = s.flux_lambda2;
+        if isnan(flux_lambda2), flux_lambda2 = s.lambda1; end
+    end
+    a = [fixed, {'gamma1', s.gamma1, 'lambda1', s.lambda1, 'delta', s.delta, 'epsilon', s.epsilon}];
+    a_flux = [a, {'lambda2', flux_lambda2}];
+    a_w1 = [a, {'lambda2', s.lambda1}];
+    fprintf('[%s] flux lambda2=%g, W1 lambda2=%g\n', s.set_id, flux_lambda2, s.lambda1);
 
     % 4d. Run the simulator at every grid point.
     % F and W1 start as NaN; a point that fails stays NaN.
@@ -118,14 +134,14 @@ for r = first_row:last_row
         progress(set_id, np, t0, true); % reset the counter to 0
         afterEach(q, @(~) progress(set_id, np, t0, false));
         parfor k = 1:np
-            [F(k), W1(k)] = edge_point(matdir, a, N1(k), N2(k), k, set_id);
+            [F(k), W1(k)] = edge_point(matdir, a_flux, a_w1, N1(k), N2(k), k, set_id);
             send(q, k); % "point k done"
         end
     else
         % --- Serial: one point after another ---
         progress(set_id, np, t0, true);
         for k = 1:np
-            [F(k), W1(k)] = edge_point(matdir, a, N1(k), N2(k), k, set_id);
+            [F(k), W1(k)] = edge_point(matdir, a_flux, a_w1, N1(k), N2(k), k, set_id);
             progress(set_id, np, t0, false);
         end
     end
@@ -145,19 +161,19 @@ end
 
 %% Helper functions
 
-function [F, W1] = edge_point(matdir, a, n1, n2, k, set_id)
+function [F, W1] = edge_point(matdir, a_flux, a_w1, n1, n2, k, set_id)
 % One simulation: flux F and edge mass W1 at a single (N1, N2) = (n1, n2).
 % Two calls, same as the training-data script:
-%   1. SingleEdgeFluxCalculator_WrapperFun -> steady-state flux F
-%   2. SingleEdgeWCalculator, given that F  -> W1
+%   1. SingleEdgeFluxCalculator_WrapperFun (a_flux) -> steady-state flux F
+%   2. SingleEdgeWCalculator, given that F (a_w1)   -> W1
 % use_sr_* = 0 means the numeric model is used, not a surrogate.
 % If either call errors, the message is printed and NaN is returned.
 F = nan; W1 = nan;
 try
-    o = SingleEdgeFluxCalculator_WrapperFun(matdir, a{:}, ...
+    o = SingleEdgeFluxCalculator_WrapperFun(matdir, a_flux{:}, ...
         'tau_x0', n1, 'tau_xL', n2, 'sim_no', k, 'use_sr_flux', 0, 'use_sr_w1', 0);
     F = o.Predicted.F;
-    W1 = SingleEdgeWCalculator(matdir, F, a{:}, 'tau_x0', n1, 'tau_xL', n2, 'use_sr_w1', 0);
+    W1 = SingleEdgeWCalculator(matdir, F, a_w1{:}, 'tau_x0', n1, 'tau_xL', n2, 'use_sr_w1', 0);
 catch err
     fprintf('[%s] point %d (N1=%g, N2=%g) failed: %s\n', set_id, k, n1, n2, err.message);
 end

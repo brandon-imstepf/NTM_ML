@@ -138,25 +138,32 @@ for t = 1:n_truths
         for m = 1:n_models
             ax = nexttile(tl, (i-1)*n_models + m); hold(ax, 'on');
             x = rn.grid{i,m,t};
-            plot(ax, x, rn.loss{i,m,t}, '-o', 'Color', hex2rgb(model_colors(m)), 'LineWidth', 2, ...
-                'MarkerSize', 4, 'MarkerFaceColor', hex2rgb(model_colors(m)));
-            plot(ax, x, rn.control{i,m,t}, '--', 'Color', hex2rgb(model_colors(m)), 'LineWidth', 1.25);
+            loss = rn.loss{i,m,t};  control = rn.control{i,m,t};
+            % the control is 0 at the truth (the run against itself), which a log axis
+            % cannot show: draw it at the bottom of the axis instead
+            positive = [loss(loss > 0); control(control > 0)];
+            y_floor = 10^floor(log10(min(positive)) - 0.5);
+            control(control == 0) = y_floor;
             xline(ax, theta(i), '--k', 'LineWidth', 1);
-            if ~isnan(rn.hat_control(i,m,t))
-                xline(ax, rn.hat_control(i,m,t), ':', 'Color', hex2rgb(model_colors(m)), 'LineWidth', 1.5);
-            end
+            plot(ax, x, control, '-', 'Color', [0.55 0.55 0.55], 'LineWidth', 1);
+            plot(ax, x, loss, '-o', 'Color', hex2rgb(model_colors(m)), 'LineWidth', 2, ...
+                'MarkerSize', 4, 'MarkerFaceColor', hex2rgb(model_colors(m)));
+            control_txt = '';
+            if ~isnan(rn.hat_control(i,m,t)), control_txt = sprintf('  (control %.3g)', rn.hat_control(i,m,t)); end
             if rn.flat(i,m,t)
                 title(ax, sprintf('%s:  %s flat (not identifiable)', model_labels(m), param_labels{i}), 'FontWeight', 'normal');
             elseif ~isnan(rn.hat(i,m,t))
                 plot(ax, rn.hat(i,m,t), rn.min_loss(i,m,t), 'o', 'MarkerFaceColor', 'r', ...
                     'MarkerEdgeColor', 'k', 'MarkerSize', 7);
-                title(ax, sprintf('%s:  %s = %.3g', model_labels(m), param_labels{i}, rn.hat(i,m,t)), 'FontWeight', 'normal');
+                title(ax, sprintf('%s:  %s = %.3g%s', model_labels(m), param_labels{i}, rn.hat(i,m,t), control_txt), ...
+                    'FontWeight', 'normal');
             else
                 title(ax, model_labels(m), 'FontWeight', 'normal');
             end
             if param_log(i), set(ax, 'XScale', 'log'); end
             set(ax, 'YScale', 'log', 'Box', 'off', 'TickDir', 'out');
             xlim(ax, param_range(i,:));
+            ylim(ax, [y_floor, Inf]);
             grid(ax, 'on');
             xlabel(ax, param_labels{i});
             if m == 1, ylabel(ax, 'NMSE'); end
@@ -164,10 +171,12 @@ for t = 1:n_truths
         end
     end
     ax1 = nexttile(tl, 1); hold(ax1, 'on');
-    h = [plot(ax1, NaN, NaN, '-o', 'Color', [0.3 0.3 0.3]), plot(ax1, NaN, NaN, '--', 'Color', [0.3 0.3 0.3]), ...
-         plot(ax1, NaN, NaN, '--k'), plot(ax1, NaN, NaN, ':', 'Color', [0.3 0.3 0.3], 'LineWidth', 1.5), ...
+    h = [plot(ax1, NaN, NaN, '-o', 'Color', [0.3 0.3 0.3], 'LineWidth', 2), ...
+         plot(ax1, NaN, NaN, '-', 'Color', [0.55 0.55 0.55], 'LineWidth', 1), ...
+         plot(ax1, NaN, NaN, '--k', 'LineWidth', 1), ...
          plot(ax1, NaN, NaN, 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k')];
-    lg = legend(h, {'vs numeric truth', 'vs surrogate at truth (control)', 'true value', 'recovered (control)', 'recovered (minimum NMSE)'}, ...
+    lg = legend(h, {'NMSE vs numeric truth', 'NMSE vs surrogate at truth (control; 0 at the truth drawn at the axis bottom)', ...
+        'true value', 'recovered (minimum NMSE)'}, ...
         'Orientation', 'horizontal', 'Box', 'off', 'FontSize', 11);
     lg.Layout.Tile = 'south';
     hold(ax1, 'off');
@@ -181,7 +190,7 @@ tl = tiledlayout(fig, 1, n_params, 'TileSpacing', 'compact', 'Padding', 'compact
 title(tl, sprintf('Network recovery (%s): recovered vs true', conv), 'FontSize', 14);
 for i = 1:n_params
     ax = nexttile(tl); hold(ax, 'on');
-    plot(ax, param_range(i,:), param_range(i,:), '-k', 'LineWidth', 1);
+    plot(ax, param_range(i,:), param_range(i,:), '-k', 'LineWidth', 1, 'DisplayName', 'recovered = true');
     for m = 1:n_models
         plot(ax, rn.true_params(:,i), squeeze(rn.hat(i,m,:)), markers{m}, 'MarkerSize', 8, ...
             'MarkerFaceColor', hex2rgb(model_colors(m)), 'MarkerEdgeColor', 'w', 'DisplayName', model_labels(m));

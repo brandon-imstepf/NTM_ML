@@ -14,3 +14,7 @@ gaussian_process-interpolant/*/
 # Parameter-recovery figures
 parameter_recovery/**/*.png
 gaussian_process-interpolant/*.png
+parameter_recovery/deprecated
+# Parameter-recovery results (recovery_curves.mat files, 85 MB) and run logs
+parameter_recovery/recovery_all_models/
+parameter_recovery/recovery_log.txt

@@ -1,3 +1,4 @@
 outputs/
 outputs_smoke/
+outputs_lambda2_eq_lambda1/
 logs/*.out
