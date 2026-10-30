@@ -15,7 +15,9 @@
 % Scaled = z-scored with the SR target scaling (flux_scaling_params.mat,
 % emc_scaling_params.mat), as in the GP and flux-only scripts, so losses are
 % on the same scale for every model.
-%   Single p:     the other three parameters held at their true values.
+%   Single p:     the other three parameters held at their true values; the
+%                 lowest point of the loss on a numiterations-point grid,
+%                 refined with fminbnd between its neighbouring grid points.
 %   Joint (p, q): the other two parameters held at their true values.
 % A parameter the model's flux does not depend on (e.g. lambda1 and epsilon
 % for SR) leaves the loss flat along it. It is flagged "flat" and its
@@ -58,7 +60,7 @@ outputs = struct( ...
 outputs = outputs(ismember([outputs.name], ["flux", "w1"]));
 
 ncores = 8;            % parfor workers (one locked set each); 0 = one set at a time
-numiterations = 200;   % points on each single-parameter loss curve (plot only)
+numiterations = 200;   % points on each single-parameter loss curve (plot, and the start of the search)
 gridN = 30;            % joint grid points per axis (grid search, then fminsearch polish)
 
 % Parameters to recover, with their training ranges.
@@ -256,8 +258,17 @@ function out = recoverOneSet(sur, scaling, dataset, params, pairs, output)
         single_loss = @(x) loss_fun(setParams(theta_true, p.col, x));
         curve = arrayfun(single_loss, p.curve_grid);
         flat = isFlat(curve, 1);
-        u_hat = fminbnd(@(u) single_loss(fromSearch(p, u)), ...
-            toSearch(p, p.range(1)), toSearch(p, p.range(2)));
+        % fminbnd finds a local minimum only (10/29/26: over the whole range it
+        % stopped at a local minimum in 14 of 725 recoveries). Start from the
+        % lowest point of the curve and search between its two neighbouring
+        % grid points; keep the grid point if fminbnd does no better.
+        [curve_min, k] = min(curve);
+        u_lo = toSearch(p, p.curve_grid(max(k - 1, 1)));
+        u_hi = toSearch(p, p.curve_grid(min(k + 1, numel(curve))));
+        u_hat = fminbnd(@(u) single_loss(fromSearch(p, u)), u_lo, u_hi);
+        if single_loss(fromSearch(p, u_hat)) > curve_min
+            u_hat = toSearch(p, p.curve_grid(k));
+        end
         out.single_curves(:,i) = curve;
         out.single_loss(i) = single_loss(fromSearch(p, u_hat));
         out.single_flat(i) = flat;

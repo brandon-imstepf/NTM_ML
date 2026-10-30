@@ -19,6 +19,8 @@ appears once and runs once.
 Writes manifests/
   recovery_truths.csv                  truth_id, convention, values, where its numeric run is
   recovery_truth_l2f.csv               numeric truths for l2f (to run)
+  recovery_truth_mlp_l2f.csv           numeric and MLP runs at each l2f truth (for the
+                                       time-step test, run with SNTM_T_END / SNTM_DT_MAX)
   recovery_pilot_<conv>.csv            MLP, first truth, gamma1 sweep
   recovery_single_<conv>.csv           all single-parameter sweeps
   recovery_joint_<a>_<b>_<conv>.csv    2-D grid over one pair, the other two at truth
@@ -122,6 +124,8 @@ def main():
     print(f"recovery_truths.csv: {len(CONVENTIONS) * len(TRUTHS)} truths")
 
     write(outdir, "recovery_truth_l2f", [row(t, "numeric", "l2f") for t in TRUTHS])
+    write(outdir, "recovery_truth_mlp_l2f",
+          [row(t, m, "l2f") for m in ["numeric", "mlp"] for t in TRUTHS])
     for conv in CONVENTIONS:
         write(outdir, f"recovery_pilot_{conv}", single_rows(conv, ["mlp"], TRUTHS[:1], ["gamma1"]))
         write(outdir, f"recovery_single_{conv}", single_rows(conv, MODELS, TRUTHS, list(PARAMS)))

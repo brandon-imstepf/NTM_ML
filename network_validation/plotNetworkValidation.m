@@ -69,7 +69,7 @@ for g = 1:numel(groups)
             days = n.trange * 180;
             keep = 2:numel(days);   % skip t = 0
             [~, seed] = max(n.N(:,1));
-            edges = find(n.C > 0);
+            edges = find(n.C > 0 & ~eye(size(n.C)));   % C keeps 24 self-connections; they carry no flux between regions
             [ei, ej] = ind2sub(size(n.C), edges);
 
             sq = (s.N(:,keep) - n.N(:,keep)).^2;

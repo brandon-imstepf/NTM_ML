@@ -1,0 +1,17 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon,init_rescale,lambda2
+rec_l2f__numeric__ECl__g0.0005_l0.02_d80_e20,numeric,rec_l2f__g0.0005_l0.02_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.02,80,20,0.01,0.01
+rec_l2f__numeric__ECl__g0.0005_l0.02_d20_e80,numeric,rec_l2f__g0.0005_l0.02_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.02,20,80,0.01,0.01
+rec_l2f__numeric__ECl__g0.0005_l0.05_d80_e20,numeric,rec_l2f__g0.0005_l0.05_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.05,80,20,0.01,0.01
+rec_l2f__numeric__ECl__g0.0005_l0.05_d20_e80,numeric,rec_l2f__g0.0005_l0.05_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.05,20,80,0.01,0.01
+rec_l2f__numeric__ECl__g0.005_l0.02_d80_e20,numeric,rec_l2f__g0.005_l0.02_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.02,80,20,0.01,0.01
+rec_l2f__numeric__ECl__g0.005_l0.02_d20_e80,numeric,rec_l2f__g0.005_l0.02_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.02,20,80,0.01,0.01
+rec_l2f__numeric__ECl__g0.005_l0.05_d80_e20,numeric,rec_l2f__g0.005_l0.05_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.05,80,20,0.01,0.01
+rec_l2f__numeric__ECl__g0.005_l0.05_d20_e80,numeric,rec_l2f__g0.005_l0.05_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.05,20,80,0.01,0.01
+rec_l2f__mlp__ECl__g0.0005_l0.02_d80_e20,mlp,rec_l2f__g0.0005_l0.02_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.02,80,20,0.01,0.01
+rec_l2f__mlp__ECl__g0.0005_l0.02_d20_e80,mlp,rec_l2f__g0.0005_l0.02_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.02,20,80,0.01,0.01
+rec_l2f__mlp__ECl__g0.0005_l0.05_d80_e20,mlp,rec_l2f__g0.0005_l0.05_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.05,80,20,0.01,0.01
+rec_l2f__mlp__ECl__g0.0005_l0.05_d20_e80,mlp,rec_l2f__g0.0005_l0.05_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.0005,0.05,20,80,0.01,0.01
+rec_l2f__mlp__ECl__g0.005_l0.02_d80_e20,mlp,rec_l2f__g0.005_l0.02_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.02,80,20,0.01,0.01
+rec_l2f__mlp__ECl__g0.005_l0.02_d20_e80,mlp,rec_l2f__g0.005_l0.02_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.02,20,80,0.01,0.01
+rec_l2f__mlp__ECl__g0.005_l0.05_d80_e20,mlp,rec_l2f__g0.005_l0.05_d80_e20,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.05,80,20,0.01,0.01
+rec_l2f__mlp__ECl__g0.005_l0.05_d20_e80,mlp,rec_l2f__g0.005_l0.05_d20_e80,rec_l2f,ECl,Hippocampus+PC+RSP,0.005,0.05,20,80,0.01,0.01
