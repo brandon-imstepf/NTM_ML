@@ -4,3 +4,10 @@ logs/*
 !logs/.gitkeep
 outputs_recovery/
 outputs_nm/
+# runs made with the 2024 simulator snapshot (kept for reference, not committed)
+*_2024code/
+# cluster vs PC check and ODE tolerance test (10/29/26)
+outputs_check/
+outputs_toltest/
+# time-step test: 60 days at the default grid and at SNTM_DT_MAX = 0.45, 0.225 days
+outputs_t60_*/

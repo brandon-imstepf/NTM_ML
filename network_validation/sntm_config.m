@@ -41,6 +41,25 @@ cfg.trange = [0:0.0025:0.1, 0.105:0.005:0.3, 0.31:0.01:1];
 if ~isempty(getenv('SNTM_SMOKE')) % short horizon for pipeline tests
     cfg.trange = 0:0.0025:0.01;
 end
+% SNTM_T_END (days) keeps the time points up to that day, the first ones of the
+% full trange, so a full run cut to the same points can serve as the truth
+if ~isempty(getenv('SNTM_T_END'))
+    cfg.trange = cfg.trange(cfg.trange <= str2double(getenv('SNTM_T_END')) / 180 + 1e-12);
+end
+% NetworkTransportModel takes forward Euler steps from one trange point to the
+% next, so the spacing of trange is the time step. SNTM_DT_MAX (days) splits
+% every interval into equal steps of at most that length; the points of the
+% grid above stay in trange
+cfg.dt_max_days = [];
+if ~isempty(getenv('SNTM_DT_MAX'))
+    cfg.dt_max_days = str2double(getenv('SNTM_DT_MAX'));
+    t = cfg.trange(1);
+    for k = 2:numel(cfg.trange)
+        n = ceil((cfg.trange(k) - cfg.trange(k-1)) * 180 / cfg.dt_max_days - 1e-9);
+        t = [t, cfg.trange(k-1) + (1:n) * (cfg.trange(k) - cfg.trange(k-1)) / n]; %#ok<AGROW>
+    end
+    cfg.trange = t;
+end
 cfg.resmesh = 'coarse';
 % ODE tolerances; SNTM_RELTOL / SNTM_ABSTOL override them for settings where the
 % steady-state solve fails at the defaults (each output stores the cfg it used)
