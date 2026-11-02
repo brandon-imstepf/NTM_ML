@@ -11,3 +11,8 @@ outputs_check/
 outputs_toltest/
 # time-step test: 60 days at the default grid and at SNTM_DT_MAX = 0.45, 0.225 days
 outputs_t60_*/
+# original vs sped-up simulator check (11/01/26)
+outputs_speedcheck/
+# R1.m1 seeds CA1/RSPd and Table 3 timing repeats (11/02/26)
+outputs_seeds/
+outputs_timing/

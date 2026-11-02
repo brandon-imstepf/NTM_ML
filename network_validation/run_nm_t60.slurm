@@ -15,8 +15,11 @@
 #
 #   sbatch --array=1-32 run_nm_t60.slurm dt0.225 numeric
 #   sbatch --array=1-32 run_nm_t60.slurm dt0.225 mlp near
+#   sbatch --array=1-32 --export=ALL,NM_RESTARTS=10 run_nm_t60.slurm dt0.225 numeric
 #
-# Writes outputs_nm/t60_<GRID>[_near]/<TRUTH>_truth/nm_l2f__mlp__<truth_id>__<param>.mat.
+# NM_RESTARTS (searches per task, best kept) and NM_LOSS (nm_loss.m) are passed
+# through to MATLAB and added to the folder name: t60_dt0.225_r10, t60_dt0.225_near_region.
+# Writes outputs_nm/t60_<GRID>[_near][_r<n>][_<loss>]/<TRUTH>_truth/nm_l2f__mlp__<truth_id>__<param>[__loss-<loss>].mat.
 # Rerunning after a timeout resumes from the saved simulations.
 #SBATCH --job-name=nm60
 #SBATCH --partition=nodes
@@ -62,6 +65,9 @@ case $START in
     SUFFIX=_near ;;
   *) echo "unknown start $START" >&2; exit 1 ;;
 esac
+# restarts and loss (nelder_mead_network_recovery.m), set with sbatch --export=ALL,NM_RESTARTS=10,NM_LOSS=region
+[[ -n "$NM_RESTARTS" && "$NM_RESTARTS" != 1 ]] && SUFFIX=${SUFFIX}_r$NM_RESTARTS
+[[ -n "$NM_LOSS" && "$NM_LOSS" != nmse ]] && SUFFIX=${SUFFIX}_$NM_LOSS
 export NM_OUT_DIR=$PWD/outputs_nm/t60_$GRID$SUFFIX/${TRUTH}_truth
 [[ -f "$NM_TRUTH_FILE" ]] || { echo "truth not found: $NM_TRUTH_FILE" >&2; exit 1; }
 

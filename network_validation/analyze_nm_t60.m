@@ -14,7 +14,9 @@ function R = analyze_nm_t60(out_root, start)
 %      that stopped in a local minimum
 %   5. figures (out_root/t60_figures): recovered / true per parameter, recovered
 %      NMSE vs nmse_true, and per parameter the scanned loss with the search stops
-% R is a table with one row per search; also saved as out_root/t60_figures/nm_t60.csv.
+% R is a table with one row per search; also saved as out_root/t60_figures/nm_t60.csv
+% and, tracked in git, results/nm_t60_<start>.csv. sim_time_s is the summed
+% simulation time of the search (MATLAB tic/toc per simulation, not SLURM wall time).
 % start "mid" (default) or "near": the searches of run_nm_t60.slurm ... near, read
 % from out_root/t60_<grid>_near; figures then go to out_root/t60_figures_near.
 %
@@ -23,8 +25,10 @@ function R = analyze_nm_t60(out_root, start)
 
 here = fileparts(mfilename('fullpath'));
 if nargin < 1 || isempty(out_root), out_root = fullfile(here, 'outputs_nm'); end
+if nargin < 2 || isempty(start), start = "mid"; end
+start = string(start);
 suffix = "";
-if nargin >= 2 && string(start) == "near", suffix = "_near"; end
+if start == "near", suffix = "_near"; end
 grids = ["base", "dt0.45", "dt0.225"];
 grid_points = [84, 133, 265];
 truths = ["numeric", "mlp"];
@@ -60,6 +64,7 @@ for g = 1:numel(grids)
                     r.recovered_value, r.recovered_value / r.true_value, r.nmse, nmse_true, ...
                     r.exitflag, r.n_simulations, at_bound, numel(S.trace(1).N(1, :)) == grid_points(g), ...
                     contains(r.truth_file, "outputs_t60_" + grids(g) + "/rec_l2f__" + tr + "__"), ...
+                    sum([S.trace.runtime_s]), mean([S.trace.runtime_s]), ...
                     {[S.trace.value]}, {[S.trace.nmse]}}; %#ok<AGROW>
             end
         end
@@ -67,8 +72,12 @@ for g = 1:numel(grids)
 end
 R = cell2table(rows, 'VariableNames', {'grid', 'truth', 'truth_id', 'param', 'true_value', ...
     'recovered', 'ratio', 'nmse', 'nmse_true', 'exitflag', 'n_sims', 'at_bound', 'grid_ok', ...
-    'truth_file_ok', 'trace_value', 'trace_nmse'});
+    'truth_file_ok', 'sim_time_s', 'sim_time_mean_s', 'trace_value', 'trace_nmse'});
 writetable(removevars(R, {'trace_value', 'trace_nmse'}), fullfile(fig_dir, 'nm_t60.csv'));
+% tracked copy for the paper (outputs_nm is not committed)
+if ~isfolder(fullfile(here, 'results')), mkdir(fullfile(here, 'results')); end
+writetable(removevars(R, {'trace_value', 'trace_nmse'}), ...
+    fullfile(here, 'results', "nm_t60_" + start + ".csv"));
 
 %% 1. Sanity
 fprintf('== 1. Sanity (%d searches)\n', height(R));
