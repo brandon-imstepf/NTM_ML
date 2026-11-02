@@ -124,7 +124,10 @@ end
   reproducible. If not, compare `env.host` of the two files.
 - **180-day run cut to 60 days**: `compare_runs(run180, run60, 60)`. Forward
   Euler steps from one `trange` point to the next, so the first 60 days of a
-  180-day run on the same grid are the 60-day run.
+  180-day run on the same grid are the 60-day run. Cut at day 59, not 60:
+  `W1` at the last point of any run is 0, because `W1` at a point is only
+  filled in when the model steps on from it (`N`, `M`, `F` agree at the last
+  point too).
 - **Time step** (default grid vs 0.45 vs 0.225 days): forward Euler error is
   roughly proportional to the step. So the difference between the 0.45-day
   and 0.225-day runs estimates the error of the 0.225-day run. If that
