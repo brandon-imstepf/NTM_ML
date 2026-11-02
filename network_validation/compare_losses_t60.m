@@ -1,4 +1,4 @@
-function C = compare_losses_t60(grid, n_points, losses)
+function C = compare_losses_t60(grid_name, n_points, losses)
 % Where the minimum of each loss (nm_loss.m) lies against the numeric truth, from
 % the MLP simulations saved by scan_loss_t60.m: one parameter at a time, the
 % others at their true values, so the minimum of the scanned curve is what a
@@ -14,10 +14,10 @@ function C = compare_losses_t60(grid, n_points, losses)
 % at_edge (lowest scan point at an end of the range: not refined).
 % Writes results/loss_compare_t60.csv and outputs_nm/t60_scan/loss_compare.png.
 
-if nargin < 1 || isempty(grid), grid = "dt0.225"; end
+if nargin < 1 || isempty(grid_name), grid_name = "dt0.225"; end
 if nargin < 2 || isempty(n_points), n_points = 49; end
 if nargin < 3 || isempty(losses), losses = ["nmse", "region", "log", "late"]; end
-grid = string(grid);  losses = string(losses);
+grid_name = string(grid_name);  losses = string(losses);
 here = fileparts(mfilename('fullpath'));
 params = ["gamma1", "lambda1", "delta", "epsilon"];
 param_tex = ["\gamma_1", "\lambda_1", "\delta", "\epsilon"];
@@ -28,10 +28,10 @@ if n_points ~= 25, n_label = "__n" + n_points; end
 
 rows = {};
 for p = 1:numel(params)
-    S = load(fullfile(here, 'outputs_nm', 't60_scan', "scan_" + grid + "__" + params(p) + n_label + ".mat"));
+    S = load(fullfile(here, 'outputs_nm', 't60_scan', "scan_" + grid_name + "__" + params(p) + n_label + ".mat"));
     is_log = p <= 2;
     for s = 1:numel(S.truth_id)
-        truth = load(fullfile(here, "outputs_t60_" + grid, "rec_l2f__numeric__ECl__" + S.truth_id(s) + ".mat"), 'N', 'trange');
+        truth = load(fullfile(here, "outputs_t60_" + grid_name, "rec_l2f__numeric__ECl__" + S.truth_id(s) + ".mat"), 'N', 'trange');
         day = truth.trange * 180;
         true_value = T{T.truth_id == S.truth_id(s), params(p)};
         u = S.value(s, :);
@@ -49,7 +49,7 @@ C = cell2table(rows, 'VariableNames', {'loss', 'param', 'truth_id', 'true_value'
 writetable(C, fullfile(here, 'results', 'loss_compare_t60.csv'));
 
 %% Summary: |min / true - 1| per loss and parameter
-fprintf('== Minimum of each loss / true value (%s, %d scan points), MLP vs numeric truth\n', grid, n_points);
+fprintf('== Minimum of each loss / true value (%s, %d scan points), MLP vs numeric truth\n', grid_name, n_points);
 for p = params
     fprintf('\n-- %s\n%-24s', p, 'truth_id');
     fprintf('%10s', losses);  fprintf('\n');
@@ -95,7 +95,7 @@ for p = 1:numel(params)
     title(ax, param_tex(p), 'FontWeight', 'normal');
     if p == 1, ylabel(ax, 'loss minimum / true value (dotted: \pm10%)'); end
 end
-title(tl, sprintf('Where each loss is lowest, MLP vs numeric truth, %s grid (8 truths per column)', grid), 'FontSize', 12);
+title(tl, sprintf('Where each loss is lowest, MLP vs numeric truth, %s grid (8 truths per column)', grid_name), 'FontSize', 12);
 exportgraphics(f, fullfile(here, 'outputs_nm', 't60_scan', 'loss_compare.png'), 'Resolution', 150);
 close(f);
 end

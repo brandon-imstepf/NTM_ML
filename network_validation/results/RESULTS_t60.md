@@ -40,6 +40,34 @@ One row per search: 8 truths x 4 parameters x 3 truth grids x 2 truths.
   - near start: one tenth of the first step, 0.0005 decades for gamma1 (about 0.1% in value), 0.1 for delta and epsilon.
 - Near start: 0.98 x true; first step 0.005 decades (gamma1, lambda1) or 1 (delta, epsilon).
 
+## 2026-11-02: loss variants (`loss_compare_t60.csv`)
+
+Where the minimum of each loss (`nm_loss.m`) lies against the numeric truth. MLP 60-day simulations
+at 49 values per parameter over the training range (`scan_loss_t60(p, 49, 'dt0.225')`), the others at
+their true values, dt0.225 truths. The minimum is refined by a parabola through the lowest scan point and
+its neighbours (`compare_losses_t60`). The minimum of a 1-D scan is what a search with unlimited restarts finds.
+
+| param | nmse | region | log | late |
+|---|---|---|---|---|
+| gamma1, median / max \|ratio - 1\| | 0.044 / 0.29 | 0.046 / 0.19 | 0.069 / 0.20 | 0.047 / 0.40 |
+| gamma1, within 10% (of 8) | 6 | 7 | 5 | 6 |
+| lambda1, median / max | 0.22 / 1.00 | 0.18 / 1.16 | 0.29 / 2.45 | 0.21 / 1.00 |
+| delta, median / max | 0.18 / 1.20 | 0.15 / 1.25 | 0.16 / 3.49 | 0.18 / 1.17 |
+| epsilon, median / max | 0.10 / 0.42 | 0.10 / 0.28 | 0.13 / 0.33 | 0.10 / 0.42 |
+
+- `region` lowers the worst case for gamma1 (0.71 x to 0.81 x true for g0.0005_l0.05_d80_e20) and epsilon
+  (0.59 x to 0.78 x for the same truth). It does not fix lambda1 or delta.
+- delta for g0.005_l0.02_d20_e80 is 2.2 x true under nmse, region and late, and 4.4 x under log.
+- `late` is no better than nmse. `log` is worse for lambda1 and delta.
+- No loss brings every parameter within 10%.
+- Figure: `outputs_nm/t60_scan/loss_compare.png`. Values above 3 x are clipped in the figure.
+
+## 2026-11-02: multi-start test
+
+NM_RESTARTS=4, lambda1 for g0.0005_l0.02_d80_e20, default grid, numeric truth (`outputs_nm/test_multistart`).
+Starts at 0.0316 (mid) and 0.0273 reached 0.0251 and 0.0252 (loss 0.0132). Starts at 0.0356 and 0.0927
+stopped in local minima, 0.0331 and 0.0622 (loss 0.0227 and 0.0252). The search kept 0.0252, 1.26 x true.
+
 ## 2026-11-02: near start (`nm_t60_near.csv`)
 
 - 192 of 192 searches used the intended grid and truth file. 191 have exitflag 1.
