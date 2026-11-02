@@ -14,6 +14,9 @@
 # Tighter ODE tolerances for rows whose steady-state solve fails at the defaults:
 #   SNTM_RELTOL=1e-6 SNTM_ABSTOL=1e-8 sbatch --array=28-30,34,36-38 run_cases.slurm manifests/numeric.csv 1
 #
+# Original vs sped-up simulator (same node, compare with compare_runs.m):
+#   NTM_SIM_ROOT=/home/bimstepf/endor/vault/Tau_Transport-jtorok_dev_orig SNTM_OUT_DIR=$PWD/outputs_speedcheck/orig ...
+#
 # Array size = ceil(rows / CHUNK). Rerunning skips cases whose output exists.
 # Surrogate cases run the same way (GP and NN-int. need the Statistics Toolbox):
 #   sbatch --array=1-200 run_cases.slurm manifests/surrogate.csv 1
@@ -31,7 +34,7 @@ CHUNK=${2:-1}
 
 VAULT=/home/bimstepf/endor/vault
 export NTM_ML_ROOT=$VAULT/NTM_ML
-export NTM_SIM_ROOT=$VAULT/Tau_Transport-jtorok_dev
+export NTM_SIM_ROOT=${NTM_SIM_ROOT:-$VAULT/Tau_Transport-jtorok_dev}
 export SNTM_OUT_DIR=${SNTM_OUT_DIR:-$VAULT/NTM_ML/network_validation/outputs}
 
 # MATLAB R2022b on the compute nodes (found by probe_cluster.slurm). Its
