@@ -1,4 +1,4 @@
-function S = flux_solve_survey(every, seeds)
+function S = flux_solve_survey(every, seeds, files)
 % How often the numeric network flux solve fails to converge, and what it does
 % to the flux. For the numeric runs of the 8 l2f truths (180 days), at every
 % 'every'-th time step, the stored state N is re-solved with nfc_fast_probe.m
@@ -17,9 +17,13 @@ function S = flux_solve_survey(every, seeds)
 %
 %   S = flux_solve_survey();              % every = 5, seed ECl
 %   S = flux_solve_survey(1, ["ECl", "CA1", "RSPd"]);
+%   S = flux_solve_survey(5, [], "../outputs_timing/timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep1.mat");
+% With 'files' (numeric run .mat files), those runs are surveyed instead and
+% the result goes to ../results/flux_solve_survey_files.csv.
 
 if nargin < 1, every = 5; end
-if nargin < 2, seeds = "ECl"; end
+if nargin < 2 || isempty(seeds), seeds = "ECl"; end
+if nargin < 3, files = strings(0); end
 here = fileparts(mfilename('fullpath'));
 nv = fileparts(here);
 addpath(here, nv);
@@ -30,11 +34,30 @@ T = T(T.convention == "l2f", :);
 dir_of = containers.Map({'ECl', 'CA1', 'RSPd'}, {'outputs_recovery', 'outputs_seeds', 'outputs_seeds'});
 nmse = @(s, n) sum((s(:) - n(:)).^2) / sum(n(:).^2);
 
+% the runs to survey: (seed, label, file)
+jobs = strings(0, 3);
+if isempty(files)
+    for sd = seeds
+        for s = 1:height(T)
+            jobs(end+1, :) = [sd, T.truth_id(s), fullfile(nv, dir_of(char(sd)), ...
+                "rec_l2f__numeric__" + sd + "__" + T.truth_id(s) + ".mat")]; %#ok<AGROW>
+        end
+    end
+    out_csv = fullfile(nv, 'results', 'flux_solve_survey.csv');
+else
+    files = string(files);
+    for f = files(:)'
+        [~, name] = fileparts(f);
+        jobs(end+1, :) = ["", name, f]; %#ok<AGROW>
+    end
+    out_csv = fullfile(nv, 'results', 'flux_solve_survey_files.csv');
+end
+
 rows = {};
-for sd = seeds
-for s = 1:height(T)
-    id = T.truth_id(s);
-    r = load(fullfile(nv, dir_of(char(sd)), "rec_l2f__numeric__" + sd + "__" + id + ".mat"), 'N', 'F', 'C', 'meta', 'trange');
+for q = 1:size(jobs, 1)
+    sd = jobs(q, 1);  id = jobs(q, 2);
+    r = load(jobs(q, 3), 'N', 'F', 'C', 'meta', 'trange');
+    if sd == "", sd = string(r.meta.seed); end
     p = r.meta;  Adj = r.C > 0;
     common = {'beta', cfg.beta, 'gamma1', p.gamma1, 'gamma2', cfg.gamma2, 'delta', p.delta, 'epsilon', p.epsilon, ...
         'lambda1', p.lambda1, 'lambda2', p.lambda2, 'frac', cfg.frac, 'L_int', cfg.L_int, 'L1', cfg.L1, 'L2', cfg.L2, ...
@@ -52,8 +75,7 @@ for s = 1:height(T)
             sd, id, h, rows{end, 5}, rows{end, 6}, rows{end, 7}, rows{end, 10});
     end
 end
-end
 S = cell2table(rows, 'VariableNames', {'seed', 'truth_id', 'step', 'day', 'n_edges', 'n_unconv_joint', ...
     'n_unconv_edge', 'max_res_joint', 'max_res_edge', 'nmse_joint_edge', 'stored_vs_joint'});
-writetable(S, fullfile(nv, 'results', 'flux_solve_survey.csv'));
+writetable(S, out_csv);
 end

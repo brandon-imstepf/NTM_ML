@@ -279,6 +279,53 @@ second argument is the reference:
 - Changing only the MLP run's mass-balance λ₂ moves it by NMSE 0.023 and 0.018 (last column of
   the CSV). The convention matters on both sides.
 
+### Fig. 8 setting
+
+`flux_solve_survey(5, [], '../outputs_timing/timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep1.mat')`
+-> `../results/flux_solve_survey_files.csv`. Setting γ 5e-5, λ 0.01, δ 10, ε 50, init 0.002,
+original code:
+
+- 31 states;
+- no unconverged joint solve and no unconverged per-edge solve;
+- stored vs re-solved flux NMSE ≤ 2e-27;
+- joint vs per-edge flux NMSE ≤ 0.011, with both converged; not investigated further.
+
+Since λ₂ = λ₁ = 0.01 here, neither problem applies to Fig. 8 or Table 3.
+
+## 10. The new options leave the default path unchanged; the stored truths come from an older code state
+
+`check_defaults.m` and one-step runs, 2026-11-03, setting g5e-4 λ0.02 δ80 ε20, seed ECl:
+
+- **The new options change nothing when off.** On the PC, the edited simulator (both options off)
+  matches the original `_orig` code: max |ΔN| = 1.4e-20 after one step, W1 identical.
+- **Earlier cluster runs agree with the PC.** The 11/01 cluster speed-check runs (node08,
+  original and sped-up code) and the PC run differ from the stored truth by the same amount:
+  - max |ΔN| = 2.2e-4 over the first 5 time points;
+  - F and W1 at t = 0 identical.
+- **The stored truths are the odd ones out.** They are in `outputs_recovery/`, from node07 on
+  10/19-20.
+- **A 10/29 cluster rerun of this case differs from the stored truth by NMSE 0.029 over 180 days**
+  (`outputs_check/`).
+- **The well-behaved setting g5e-3 λ0.02 δ20 ε80 also differs after one step (3.6e-5).** So the
+  cluster's simulator copy changed between 10/20 and 10/29, before the 11/01 speed-up. What
+  changed is not known.
+- **Each comparison used one code state.**
+  - ECl: the numeric and surrogate runs are all from 10/19-20.
+  - CA1/RSPd: all from 11/02.
+  - The reruns in section 11 use one code state for everything.
+
+## 11. Option (a): all R1.m1 simulations in the training convention (decided 2026-11-03)
+
+- **What is rerun:** 24 numeric cases (8 settings x 3 seeds, per-edge flux, W1 at λ₂ = λ₁) and
+  96 surrogate cases (W1 path at λ₂ = λ₁).
+- **Manifests:** `../manifests/consistent_l2f_{numeric,surrogate}.csv`, from
+  `../make_consistent_manifests.py`.
+- **Where:** on the cluster, into `outputs_consistent/`.
+- **Simulator:** the cluster copy of `jtorok_dev` needs the edited `NetworkTransportModel.m` and
+  `NetworkFluxCalculator.m` (backup taken first).
+- The surrogate runs ignore `SNTM_FLUX_PER_EDGE` (no numeric flux), but it does no harm to leave
+  it unset for them.
+
 ## Consequences (for the reviewer response and the paper)
 
 1. **R1.m1 (network accuracy) and R2.M4 (stability):**
