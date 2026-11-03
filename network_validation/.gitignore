@@ -16,3 +16,11 @@ outputs_speedcheck/
 # R1.m1 seeds CA1/RSPd and Table 3 timing repeats (11/02/26)
 outputs_seeds/
 outputs_timing/
+# numeric runs with per-edge flux solves (solver_check, 11/03/26)
+outputs_fixedflux/
+# per-edge flux and W1 at lambda2 = lambda1, the training data's convention (11/03/26)
+outputs_consistent/
+# solver_check: probes generated from the simulator code (make_*probe.py) and their outputs
+solver_check/nfc_probe.m
+solver_check/nfc_fast_probe.m
+solver_check/probe_*.mat

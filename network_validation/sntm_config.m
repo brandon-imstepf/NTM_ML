@@ -66,6 +66,11 @@ cfg.resmesh = 'coarse';
 cfg.reltol = str2double(getenv_default('SNTM_RELTOL', '1e-4'));
 cfg.abstol = str2double(getenv_default('SNTM_ABSTOL', '1e-4'));
 cfg.fsolvetol = 1e-6;
+% SNTM_FLUX_PER_EDGE=1: numeric flux solved one edge at a time instead of jointly
+% per target region (needs the edited simulator; see solver_check/SOLVER_CHECK.md)
+cfg.flux_per_edge = strcmp(getenv('SNTM_FLUX_PER_EDGE'), '1');
+% SNTM_LAMBDA2_W1=lambda1: W1 at lambda2 = lambda1 (the training data's convention)
+cfg.lambda2_w1_is_lambda1 = strcmp(getenv('SNTM_LAMBDA2_W1'), 'lambda1');
 cfg.init_rescale = 1e-2;
 cfg.study = 'Hurtado';
 cfg.conn_thresh = 0.8;
