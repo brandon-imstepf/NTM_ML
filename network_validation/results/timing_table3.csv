@@ -1,0 +1,26 @@
+method,case_id,runtime_s,host,cpu,matlab,threads
+gp,timing__gp__ECl__g5e-05_l0.01_d10_e50__rep1,292.059568,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+gp,timing__gp__ECl__g5e-05_l0.01_d10_e50__rep2,294.06547,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+gp,timing__gp__ECl__g5e-05_l0.01_d10_e50__rep3,274.465722,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+gp,timing__gp__ECl__g5e-05_l0.01_d10_e50__rep4,285.982226,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+gp,timing__gp__ECl__g5e-05_l0.01_d10_e50__rep5,257.856775,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+lr,timing__lr__ECl__g5e-05_l0.01_d10_e50__rep1,200.526287,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+lr,timing__lr__ECl__g5e-05_l0.01_d10_e50__rep2,198.115906,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+lr,timing__lr__ECl__g5e-05_l0.01_d10_e50__rep3,199.022924,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+lr,timing__lr__ECl__g5e-05_l0.01_d10_e50__rep4,193.825577,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+lr,timing__lr__ECl__g5e-05_l0.01_d10_e50__rep5,180.839813,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+mlp,timing__mlp__ECl__g5e-05_l0.01_d10_e50__rep1,203.449087,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+mlp,timing__mlp__ECl__g5e-05_l0.01_d10_e50__rep2,205.731611,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+mlp,timing__mlp__ECl__g5e-05_l0.01_d10_e50__rep3,197.744423,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+mlp,timing__mlp__ECl__g5e-05_l0.01_d10_e50__rep4,190.441483,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+mlp,timing__mlp__ECl__g5e-05_l0.01_d10_e50__rep5,180.574381,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+numeric,timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep1,15556.501078,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+numeric,timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep2,14194.047104,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+numeric,timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep3,14046.03267,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+numeric,timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep4,13951.243079,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+numeric,timing__numeric__ECl__g5e-05_l0.01_d10_e50__rep5,13521.774299,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+sr,timing__sr__ECl__g5e-05_l0.01_d10_e50__rep1,200.956928,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+sr,timing__sr__ECl__g5e-05_l0.01_d10_e50__rep2,203.351153,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+sr,timing__sr__ECl__g5e-05_l0.01_d10_e50__rep3,200.429002,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+sr,timing__sr__ECl__g5e-05_l0.01_d10_e50__rep4,191.649589,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1
+sr,timing__sr__ECl__g5e-05_l0.01_d10_e50__rep5,177.258637,node08.cluster,model name	: Intel(R) Xeon(R) Gold 5215 CPU @ 2.50GHz,9.13.0.2080170 (R2022b) Update 1,1

@@ -9,6 +9,9 @@ function A = network_checks_l2f()
 %   nmse_last30  nmse over days 150-180
 %   min_N        smallest N of the run (negative = loss of non-negativity)
 %   n_negative   number of N values below 0
+%   n_clamped    number of N values equal to eps: NetworkTransportModel replaces
+%                negative N by eps after each step, so this counts the values
+%                that went negative
 %   finite       all N finite
 %   rel_change_last  max over regions of |N(180) - N(171)| / max N, the change
 %                over the last time step (long-term stability)
@@ -45,12 +48,12 @@ for s = 1:height(T)
         nmse_last = sum((N(:, last30) - n(:, last30)).^2, 'all') / sum(n(:, last30).^2, 'all');
         rel_change = max(abs(N(:, end) - N(:, end-1))) / max(N(:));
         rows(end+1, :) = {seeds(k), T.truth_id(s), m, nmse, r2, nmse_last, min(N(:)), sum(N(:) < 0), ...
-            all(isfinite(N(:))), rel_change, r.runtime_s}; %#ok<AGROW>
+            sum(N(:) == eps), all(isfinite(N(:))), rel_change, r.runtime_s}; %#ok<AGROW>
     end
 end
 end
 A = cell2table(rows, 'VariableNames', {'seed', 'truth_id', 'method', 'nmse', 'r2', 'nmse_last30', 'min_N', ...
-    'n_negative', 'finite', 'rel_change_last', 'runtime_s'});
+    'n_negative', 'n_clamped', 'finite', 'rel_change_last', 'runtime_s'});
 writetable(A, fullfile(here, 'results', 'network_checks_l2f.csv'));
 
 fprintf('== l2f truths, 180 days, seeds %s: median [min, max] over %d simulations per method\n', ...
@@ -61,6 +64,9 @@ for m = methods
     fprintf('%-8s %-28s %-28s %-28s %8d %5d/%d %-22s\n', m, mmm(a.nmse), mmm(a.r2), mmm(a.nmse_last30), ...
         sum(a.n_negative), sum(a.finite), height(a), mmm(a.runtime_s));
 end
+fprintf('N clamped from negative to eps (simulations with any / most values in one simulation): %s\n', ...
+    strjoin(arrayfun(@(m) sprintf('%s %d/%d, %d', m, nnz(A.n_clamped(A.method == m) > 0), ...
+    nnz(A.method == m), max(A.n_clamped(A.method == m))), methods, 'UniformOutput', false), '; '));
 fprintf('largest change over the last step (fraction of max N): %s\n', ...
     strjoin(compose('%s %.2g', methods', arrayfun(@(m) max(A.rel_change_last(A.method == m)), methods')), ', '));
 
