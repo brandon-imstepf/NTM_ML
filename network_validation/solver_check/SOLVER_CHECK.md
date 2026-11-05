@@ -326,6 +326,103 @@ Since λ₂ = λ₁ = 0.01 here, neither problem applies to Fig. 8 or Table 3.
 - The surrogate runs ignore `SNTM_FLUX_PER_EDGE` (no numeric flux), but it does no harm to leave
   it unset for them.
 
+## 12. Results of the option (a) runs (2026-11-04)
+
+- **Runs:** 120 on the cluster (24 numeric, 96 surrogate), copied to `../outputs_consistent/`; all
+  120 present. Analyses with `run_set = "consistent"` (`../l2f_runs.m`); results in
+  `../results/*_consistent.csv`, figure `../outputs_nm/fig_sy_consistent.{png,pdf}`.
+- **Reproducible on the PC:** the local ECl MLP runs at the two problem settings (section 9) equal
+  the cluster runs (NMSE 7.64e-5 and 2.46e-4 both places); one CA1 MLP case rerun on the PC
+  equals the cluster run to 3e-32.
+- **`lambda2_w1` affects the surrogate runs too.** It sets λ₂ for the whole mass-balance step
+  (`MassBalanceCalculator_explicit_W_faster`), which also builds the synaptic-cleft edge profiles
+  behind the edge mass v1, v2, not only W1. Same code, same CA1 MLP case
+  (g0.005 l0.05 d20 e80): with and without `SNTM_LAMBDA2_W1=lambda1`, NMSE 1.05e-2 between the two;
+  without it, the run equals the old `outputs_seeds/` run to 4e-32. So the surrogate runs in
+  `outputs_seeds/` differ from the new ones by this option alone (MLP 2e-5 to 1.3e-2). Numeric and
+  surrogate runs in `outputs_consistent/` use the same setting, so the comparison is like for like.
+- **Network error against the numeric NTM** (24 simulations per method; `network_checks_l2f_consistent.csv`):
+
+  | method | NMSE median [min, max] | R² median [min, max] | non-finite | clamped sims (max values) |
+  |---|---|---|---|---|
+  | numeric | – | – | 0 | 0/24 (0) |
+  | MLP | 3.7e-4 [2.4e-5, 9.3e-3] | 0.999 [0.988, 1.000] | 0 | 21/24 (239) |
+  | GP | 6.0e-2 [2.3e-4, 6.0] | 0.883 [-14.3, 1.000] | 1 | 21/24 (651) |
+  | LR | 8.6e-2 [1.8e-2, 1.00] | 0.788 [-1.59, 0.970] | 0 | 24/24 (793) |
+  | SR | 0.11 [1.2e-2, 5.28] | 0.671 [-6.0, 0.983] | 0 | 24/24 (724) |
+
+  - MLP best in 24/24; R² ≥ 0.99 in 23/24. Largest MLP errors at RSPd, γ 5e-3, λ 0.02.
+  - GP error ≥ 0.80 in 4 of the 6 runs at γ 5e-3, δ 80, ε 20 (one non-finite).
+  - The numeric NTM no longer needs the clamp (0 of 24; before: 9 of 24, at most 5 values).
+- **Time step** (`../time_step_consistent.m`, ECl, 60 days): MLP change between the default grid and
+  0.225-day steps 1.3–4.9e-5; MLP vs numeric 1.9e-5–1.4e-3, of the same size as the grid change at
+  γ 5e-4, δ 20, ε 80 (both λ).
+- **Coverage, edge error, GP variance, mass balance:** `edge_*_l2f_consistent.csv`,
+  `gp_variance_l2f_consistent.csv`, `gp_trajectory_l2f_consistent.csv`,
+  `mass_balance_l2f_consistent.csv`. The response draft (R1.m1, R2.M2, R2.M4, R1.M1) quotes them.
+- **GP variance along the GP runs** (`gp_trajectory_l2f`, now all three seeds): the largest s.d.
+  over the edges rose 1.5× (CA1, γ 5e-3, λ 0.02, δ 80, NMSE 6.0) and 2.5× (RSPd, same setting,
+  non-finite) above day 0, passing 1.2× by day 2.25; in the other 22 runs at most 1.14×, including
+  NMSE 0.92 (ECl) and 0.80 (RSPd). The earlier result (rise in 3 failing ECl runs) came from the
+  old runs; no ECl GP run diverges now.
+- **Run times** of these runs are from the optimized code (numeric median 50 min, MLP 13 s) and
+  are not used in the paper.
+
+## 13. Accuracy near the edge of the training domain (2026-11-05)
+
+The advisor asked whether the GP (and LR) fail near the edge of the domain or where tau
+concentrates. Scripts: `domain_edge_error.m` (single edge), `edge_inputs_l2f(2000, "consistent")`
+(network: new coverage columns `frac_N_below_p1` and `frac_N_above_p99`; edge error split into
+`*_low_N` and `*_other`), `make_table_domain_edge.py` (Supplementary Table S3).
+
+**Single edge.**
+- Data: 10⁵ held-out rows (`data_bias_e5_11.csv`). No surrogate was fit on them; the MLP script
+  only records its error on them.
+- Edge depth: d = min over inputs of min(u, 1−u), where u is the input's quantile among the rows
+  of `data_bias_e5_1.csv`.
+- NMSE is Eq. 7 within each bin.
+
+| Method | φτ, interior (d ≥ 0.15) | φτ, edge (d < 0.01) | Δτ, interior | Δτ, edge |
+|---|---|---|---|---|
+| MLP | 4.7e-5 | 2.6e-4 | 1.7e-4 | 6.4e-3 |
+| GP | 8.9e-4 | 2.0e-2 | 5.7e-3 | 5.1e-2 |
+| LR | 0.31 | 0.40 | 0.54 | 0.54 |
+| SR | 0.16 | 0.26 | 0.20 | 0.31 |
+
+- **Upper 1% of N1** (tau concentrated): GP φτ 5.8e-2, 66× its interior; MLP 8.2e-4.
+- **GP predictive s.d.:**
+  - from interior to edge it rises 2.0× while the RMSE rises 12×;
+  - in the upper 1% of N1 it rises 4.7× while the RMSE rises 36×.
+- **High-γ tail of Δτ:** NMSE is large for every method (GP 2.6, LR 379), because the bin variance
+  is small. The MSE ratio to the interior is only about 2–3×. This tail is not reported.
+
+**Network** (24 consistent runs):
+- **Parameter settings:** between the 11th and 78th percentiles of the training distributions.
+- **Nonzero N below the training 1st percentile (7.4e-5):**
+
+  | Seeds | slow aggregation (γ 5e-4) | fast aggregation (γ 5e-3) |
+  |---|---|---|
+  | ECl, CA1 | 3–8% | 17–23% |
+  | RSPd | 25–37% | 75–82% |
+
+- **Nonzero N above the 99th percentile:** at most 0.13%.
+- **Edge error at the numeric states, low-N edges vs the others** (median over the 24 runs):
+
+  | Method | low-N edges | other edges | higher on low-N edges in |
+  |---|---|---|---|
+  | GP φτ | 0.43 | 0.078 | 19/24 runs |
+  | GP Δτ | 7.3e-2 | 6.0e-3 | |
+  | MLP φτ | 4.1e-3 | 2.1e-3 | 18/24 runs |
+  | MLP Δτ | 2.9e-4 | 7.0e-5 | |
+  | LR φτ | 0.35 | 0.32 | 15/24 runs |
+  | SR φτ | 0.93 | 0.58 | 17/24 runs |
+
+**Conclusion:**
+- The GP's errors, like the MLP's but larger, are concentrated at the edge.
+- LR and SR are poor throughout the domain.
+- The written-up version is in the supplement section "Surrogate accuracy near the edge of the
+  training domain", the response (R1.M1, R2.M2) and the manuscript (Results and Limitations).
+
 ## Consequences (for the reviewer response and the paper)
 
 1. **R1.m1 (network accuracy) and R2.M4 (stability):**

@@ -12,6 +12,10 @@ function sur = make_surrogate(method, cfg)
 % Flux is forced to zero on edges where both nodes are empty, matching the
 % MLP branch inside NetworkFluxCalculator.
 %
+%   sur.predict_flux(X), sur.predict_w1(X) -> phi_tau, Delta_tau at the rows of
+%   an n x 6 matrix X = [g l d e N1 N2] (one parameter set per row, no gating),
+%   for single-edge tests (not set for 'numeric')
+%
 % method: 'numeric' | 'mlp' | 'sr' | 'gp' | 'interp' | 'lr'
 
 sur.method = method;
@@ -38,6 +42,9 @@ switch method
         w1_raw = @(g,l,d,e,N1,N2) (emc_z(g,l,d,e,N1,N2) * es.target_std + es.target_mean) + zeros(size(N1));
         sur.flux_fun = @(g,l,d,e,N1,N2) gate_flux(flux_raw(g,l,d,e,N1,N2), N1, N2);
         sur.w1_fun = @(g,l,d,e,N1,N2,~) w1_raw(g,l,d,e,N1,N2);
+        sur.predict_flux = @(X) flux_raw(X(:,1), X(:,2), X(:,3), X(:,4), X(:,5), X(:,6));
+        sur.predict_w1 = @(X) w1_raw(X(:,1), X(:,2), X(:,3), X(:,4), X(:,5), X(:,6));
+        return
 
     case 'mlp'
         W = load(cfg.mlp_weights_file);
@@ -78,6 +85,8 @@ switch method
     otherwise
         error('make_surrogate:method', 'Unknown method "%s".', method);
 end
+sur.predict_flux = predict_f;
+sur.predict_w1 = predict_w;
 end
 
 function Y = apply_rowwise(predict_fun, g, l, d, e, N1, N2)

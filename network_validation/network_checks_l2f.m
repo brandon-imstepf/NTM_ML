@@ -1,4 +1,4 @@
-function A = network_checks_l2f()
+function A = network_checks_l2f(run_set)
 % Network-level accuracy and behaviour of each surrogate against the numeric
 % truth, for the 8 l2f truths of manifests/recovery_truths.csv (lambda2 = 0.01 in
 % the numeric runs, as in the surrogates' training data; 30 regions, 180 days),
@@ -20,9 +20,14 @@ function A = network_checks_l2f()
 % default grid and at a 0.225-day maximum step (outputs_t60_*), at the shared
 % time points up to day 59.
 % Writes results/network_checks_l2f.csv and results/network_dt_mlp_l2f.csv.
+% run_set (l2f_runs.m): "original" (default) or "consistent", which reads
+% outputs_consistent/, writes results/network_checks_l2f_consistent.csv and
+% skips the time-step check (run in the original convention only).
 %
 %   A = network_checks_l2f();
+%   A = network_checks_l2f("consistent");
 
+if nargin < 1, run_set = "original"; end
 here = fileparts(mfilename('fullpath'));
 T = readtable(fullfile(here, 'manifests', 'recovery_truths.csv'), 'TextType', 'string');
 T = T(T.convention == "l2f", :);
@@ -30,7 +35,7 @@ methods = ["numeric", "mlp", "sr", "gp", "lr"];
 file = @(dir, m, id) fullfile(here, dir, "rec_l2f__" + m + "__ECl__" + id + ".mat");
 
 seeds = ["ECl", "CA1", "RSPd"];
-seed_dirs = ["outputs_recovery", "outputs_seeds", "outputs_seeds"];
+[seed_dirs, tag] = l2f_runs(run_set);
 seed_file = @(k, m, id) fullfile(here, seed_dirs(k), "rec_l2f__" + m + "__" + seeds(k) + "__" + id + ".mat");
 
 rows = {};
@@ -54,7 +59,7 @@ end
 end
 A = cell2table(rows, 'VariableNames', {'seed', 'truth_id', 'method', 'nmse', 'r2', 'nmse_last30', 'min_N', ...
     'n_negative', 'n_clamped', 'finite', 'rel_change_last', 'runtime_s'});
-writetable(A, fullfile(here, 'results', 'network_checks_l2f.csv'));
+writetable(A, fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"));
 
 fprintf('== l2f truths, 180 days, seeds %s: median [min, max] over %d simulations per method\n', ...
     strjoin(unique(A.seed, 'stable'), ', '), sum(A.method == "numeric"));
@@ -71,6 +76,7 @@ fprintf('largest change over the last step (fraction of max N): %s\n', ...
     strjoin(compose('%s %.2g', methods', arrayfun(@(m) max(A.rel_change_last(A.method == m)), methods')), ', '));
 
 %% Time-step sensitivity of the MLP (60 days)
+if run_set ~= "original", return, end
 rows = {};
 for s = 1:height(T)
     b = load(file('outputs_t60_base', "mlp", T.truth_id(s)), 'N', 'trange');

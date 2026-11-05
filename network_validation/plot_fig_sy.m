@@ -1,7 +1,8 @@
-function plot_fig_sy(out_file)
+function plot_fig_sy(out_file, run_set)
 % Supplementary Fig. SY (R1.m1): network error of each sNTM against the numeric
 % NTM over the 8 l2f parameter settings and the seeds in
-% results/network_checks_l2f.csv (run network_checks_l2f first).
+% results/network_checks_l2f.csv (run network_checks_l2f first), or, with
+% run_set = "consistent", in results/network_checks_l2f_consistent.csv.
 % (a) NMSE = sum (s - n)^2 / sum n^2 over all regions and time points, one point
 %     per simulation, log scale; (b) R^2 over the same points.
 % Non-finite simulations are drawn at the top of (a) as crosses; in (b) the
@@ -9,10 +10,13 @@ function plot_fig_sy(out_file)
 %
 %   plot_fig_sy();                          % outputs_nm/fig_sy.png and .pdf
 %   plot_fig_sy('figs/fig_sy');
+%   plot_fig_sy([], "consistent");             % outputs_nm/fig_sy_consistent.png and .pdf
 
 here = fileparts(mfilename('fullpath'));
-if nargin < 1, out_file = fullfile(here, 'outputs_nm', 'fig_sy'); end
-A = readtable(fullfile(here, 'results', 'network_checks_l2f.csv'), 'TextType', 'string');
+if nargin < 2, run_set = "original"; end
+[~, tag] = l2f_runs(run_set);
+if nargin < 1 || isempty(out_file), out_file = fullfile(here, 'outputs_nm', "fig_sy" + tag); end
+A = readtable(fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"), 'TextType', 'string');
 methods = ["mlp", "gp", "sr", "lr"];
 labels = ["MLP", "GP", "SR", "LR"];
 seeds = unique(A.seed, 'stable');

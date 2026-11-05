@@ -1,4 +1,4 @@
-function B = mass_balance_l2f()
+function B = mass_balance_l2f(run_set)
 % Tau mass balance of the network simulations of the 8 l2f truths (numeric NTM
 % and each sNTM, 180 days; seeds as in network_checks_l2f), for R2.M4.
 % NetworkTransportModel updates N by
@@ -13,17 +13,20 @@ function B = mass_balance_l2f()
 %   node_mass_end  node mass sum_i V_i (N_i + M_i) at 180 days / initial node mass
 %   node_mass_diff max over time of |node mass (sNTM) - node mass (numeric)| /
 %                  initial node mass (sNTMs only)
-% Writes results/mass_balance_l2f.csv.
+% Writes results/mass_balance_l2f.csv; with run_set = "consistent" (l2f_runs.m)
+% the runs in outputs_consistent/, into results/mass_balance_l2f_consistent.csv.
 %
 %   B = mass_balance_l2f();
+%   B = mass_balance_l2f("consistent");
 
+if nargin < 1, run_set = "original"; end
 here = fileparts(mfilename('fullpath'));
 cfg = sntm_config();
 T = readtable(fullfile(here, 'manifests', 'recovery_truths.csv'), 'TextType', 'string');
 T = T(T.convention == "l2f", :);
 methods = ["numeric", "mlp", "sr", "gp", "lr"];
 seeds = ["ECl", "CA1", "RSPd"];
-seed_dirs = ["outputs_recovery", "outputs_seeds", "outputs_seeds"];
+[seed_dirs, tag] = l2f_runs(run_set);
 seed_file = @(k, m, id) fullfile(here, seed_dirs(k), "rec_l2f__" + m + "__" + seeds(k) + "__" + id + ".mat");
 
 % Region volumes of the 30-region subnetwork, selected as in NetworkTransportModel
@@ -54,7 +57,7 @@ for s = 1:height(T)
 end
 end
 B = cell2table(rows, 'VariableNames', {'seed', 'truth_id', 'method', 'drift_max', 'node_mass_end', 'node_mass_diff'});
-writetable(B, fullfile(here, 'results', 'mass_balance_l2f.csv'));
+writetable(B, fullfile(here, 'results', "mass_balance_l2f" + tag + ".csv"));
 
 fprintf('== Mass balance, median [min, max] over %d simulations per method (fractions of initial node mass)\n', ...
     sum(B.method == "numeric"));
