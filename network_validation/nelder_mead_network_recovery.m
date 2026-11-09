@@ -214,7 +214,7 @@ fprintf('[%s] recovered %s (true %s), loss %.4g, NMSE %.4g, start %d of %d, %d s
         end
         save(out_file, 'trace', 'best', '-v7.3');
         fprintf('  sim %2d: %s  loss = %.5g  NMSE = %.5g  (%.0f s)\n', numel(trace), ...
-            strjoin(compose('%s = %-10.4g', param, theta(i)), '  '), loss, nmse, runtime_s);
+            strjoin(compose('%s = %-10.4g', param(:), reshape(theta(i), [], 1)), '  '), loss, nmse, runtime_s);
     end
 end
 

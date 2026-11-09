@@ -17,6 +17,7 @@ function R = domain_edge_error(n_boot)
 % (Eq. 7 restricted to the bin), as mean +- s.d. over n_boot bootstrap
 % resamples within the bin; also the MSE relative to the interior bin.
 % GP predictive s.d. (flux, phi_tau) per bin.
+% Bin "all": every held-out row.
 % Writes results/domain_edge_error.csv (depth bins) and
 % results/domain_edge_tails.csv (per-input tails).
 %
@@ -42,7 +43,7 @@ end
 tail = min(U, 1 - U);
 d = min(tail, [], 2);
 edges = [0, 0.01, 0.05, 0.15, 0.5];
-bin_names = ["d<0.01", "0.01-0.05", "0.05-0.15", "interior d>=0.15"];
+bin_names = ["d<0.01", "0.01-0.05", "0.05-0.15", "interior d>=0.15", "all"];
 bin = discretize(d, edges, 'IncludedEdge', 'left');
 bin(d >= 0.5) = 4;
 
@@ -93,6 +94,18 @@ for m = methods
 end
 R.tails = cell2table(rows, 'VariableNames', {'method', 'target', 'input', 'tail', 'n', 'nmse_mean', 'nmse_sd', ...
     'mse_over_interior', 'gp_flux_sd_median'});
+
+% All held-out rows (after the bins and tails, so their bootstrap draws are unchanged)
+rows = {};
+for m = methods
+    for t = 1:2
+        mse_int = mean((P.(m)(bin == 4, t) - Y(bin == 4, t)).^2);
+        [mu, sd] = boot_nmse(P.(m)(:, t), Y(:, t), n_boot);
+        rows(end+1, :) = {m, targets(t), bin_names(5), numel(bin), mu, sd, ...
+            mean((P.(m)(:, t) - Y(:, t)).^2) / mse_int, median(gp_sd)}; %#ok<AGROW>
+    end
+end
+R.depth = [R.depth; cell2table(rows, 'VariableNames', R.depth.Properties.VariableNames)];
 
 writetable(R.depth, fullfile(here, 'results', 'domain_edge_error.csv'));
 writetable(R.tails, fullfile(here, 'results', 'domain_edge_tails.csv'));

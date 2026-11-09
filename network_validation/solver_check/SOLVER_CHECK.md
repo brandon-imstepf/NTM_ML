@@ -417,6 +417,14 @@ concentrates. Scripts: `domain_edge_error.m` (single edge), `edge_inputs_l2f(200
   | LR φτ | 0.35 | 0.32 | 15/24 runs |
   | SR φτ | 0.93 | 0.58 | 17/24 runs |
 
+**GP test set.**
+- `gaussian_process.m` ranked the GP configurations on `bias_val_e3.csv` and reported its test NMSE
+  on the same set: 3.9e-3 / 2.6e-2.
+- On the 10⁵ untouched rows of `data_bias_e5_11.csv` (`gp_single_edge_table.m`, row
+  `heldout_e5_11`) it is 7.6e-3 / 2.4e-2. These are the numbers used in the paper.
+- MLP on the same rows: 8.8e-5 / 1.6e-3 (`domain_edge_error.csv`, bin "all"). The GP is 90× and
+  15× higher.
+
 **Conclusion:**
 - The GP's errors, like the MLP's but larger, are concentrated at the edge.
 - LR and SR are poor throughout the domain.
