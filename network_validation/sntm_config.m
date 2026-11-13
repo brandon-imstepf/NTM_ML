@@ -23,7 +23,17 @@ cfg.lr_weights_file = fullfile(here, 'models', 'lr_weights.mat'); % from fit_lr_
 % FM_exact__BF_linear__KF_ARDMatern32__OPT_fminunc.mat (identical predictive
 % mean), with the target scaling of its 5000-sample training subset stored inside
 cfg.gp_model_file = fullfile(here, 'models', 'gp_e5k_exact_linear_ardmatern32_fminunc.mat');
-cfg.interp_train_size = 10000; % must match interpolant.m
+% Training samples of the interp sNTM (nearest neighbor; interp_training_data.m):
+% all 10^6 samples of the MLP's training data (2026-11-13; 10^4 rows of
+% data_bias_e5_1.csv before, as in interpolant.m).
+cfg.interp_train_size = 1e6;
+cfg.interp_train_files = arrayfun(@(k) fullfile(cfg.ntm_ml_root, 'data', 'data_neural_network_model', ...
+    'training_data_e6', sprintf('data_bias_e5_%d.csv', k)), 1:10, 'UniformOutput', false);
+% Inputs of the interp sNTM (nearest neighbour) put on log10 scale before z-scoring
+% (columns of [gamma1 lambda1 delta epsilon N1 N2]). [1 2] = log gamma1, log lambda1,
+% chosen 2026-11-13 (held-out NMSE 0.13 vs 0.61 z-scored only, n = 10^4). The interp
+% runs in outputs/ (Nov 1) predate this and use [] (z-scored only).
+cfg.interp_log_inputs = [1 2];
 cfg.train_superset_file = fullfile(cfg.ntm_ml_root, 'data', 'data_neural_network_model', ...
     'training_data_e6', 'data_bias_e5_1.csv');
 cfg.train_seed = 42;

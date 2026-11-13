@@ -20,6 +20,12 @@ function R = analyze_nm_consistent()
 %   joint_trace.png            the four-parameter searches, value / true per simulation
 %   joint_regions.png          regional tau for one four-parameter search
 %
+% Every error reported here is the NMSE of Eq. 7 (nmse_eq7.m). The searches
+% and scans minimized and stored sum (s - n)^2 / sum n^2 (sse_rel.m, nm_loss
+% "nmse" before 2026-11-10); for a given reference n the two differ by the
+% constant factor sum n^2 / sum (n - mean n)^2, so the stored values are
+% converted with that factor and the estimates are unchanged.
+%
 %   R = analyze_nm_consistent();
 
 here = fileparts(mfilename('fullpath'));
@@ -38,13 +44,17 @@ truth_label = arrayfun(@(k) sprintf('\\gamma_1=%g, \\lambda_1=%g, \\delta=%g, \\
 col = struct('ECl', [42 120 214]/255, 'CA1', [235 104 52]/255, 'RSPd', [27 175 122]/255);
 grey = [0.45 0.45 0.45];
 
-%% NMSE of the MLP at the true values against each numeric truth
+%% NMSE of the MLP at the true values against each numeric truth, and the
+%% factors that convert the stored sse_rel values of each reference to NMSE
 nmse_true = NaN(height(T), numel(seeds));
+fnum = NaN(height(T), numel(seeds));  fmlp = fnum;
 for s = 1:height(T)
     for d = 1:numel(seeds)
         num = load(truth_file("numeric", seeds(d), T.truth_id(s)), 'N');
         mlp = load(truth_file("mlp", seeds(d), T.truth_id(s)), 'N');
-        nmse_true(s, d) = nm_loss(mlp.N, num.N, "nmse");
+        nmse_true(s, d) = nmse_eq7(mlp.N, num.N);
+        fnum(s, d) = sum(num.N(:).^2) / sum((num.N(:) - mean(num.N(:))).^2);
+        fmlp(s, d) = sum(mlp.N(:).^2) / sum((mlp.N(:) - mean(mlp.N(:))).^2);
     end
 end
 
@@ -60,9 +70,10 @@ for tr = ["numeric", "mlp", "twostage"]
                 f = fullfile(root, seeds(d), dirs.(tr), "nm_l2f__mlp__" + T.truth_id(s) + "__" + params(p) + ".mat");
                 if ~isfile(f) || isempty(whos('-file', f, 'result')), continue; end
                 S = load(f, 'result');  r = S.result;
-                nt = 0;  if tr ~= "mlp", nt = nmse_true(s, d); end
+                nt = 0;  fac = fnum(s, d);
+                if tr ~= "mlp", nt = nmse_true(s, d); else, fac = fmlp(s, d); end
                 rows(end+1, :) = {seeds(d), tr, T.truth_id(s), params(p), r.true_value, r.recovered_value, ...
-                    r.recovered_value / r.true_value, rel_err(r.recovered_value, r.true_value, p), r.nmse, nt, ...
+                    r.recovered_value / r.true_value, rel_err(r.recovered_value, r.true_value, p), r.nmse * fac, nt, ...
                     r.n_simulations, r.exitflag}; %#ok<AGROW>
             end
         end
@@ -80,6 +91,7 @@ for s = 1:height(T)
         f = fullfile(root, 'scan', "scan__" + T.truth_id(s) + "__" + params(p) + ".mat");
         if ~isfile(f), continue; end
         S = load(f, 'value', 'nmse_numeric', 'nmse_mlp', 'true_value');
+        S.nmse_numeric = S.nmse_numeric * fnum(s, 1);  S.nmse_mlp = S.nmse_mlp * fmlp(s, 1);   % to NMSE
         scan(s, p).value = S.value;  scan(s, p).num = S.nmse_numeric;  scan(s, p).mlp = S.nmse_mlp;
         [xn, ln] = scan_min(S.value, S.nmse_numeric, is_log(p));
         [xm, lm] = scan_min(S.value, S.nmse_mlp, is_log(p));
@@ -98,6 +110,10 @@ for s = 1:height(T)
     f = fullfile(root, 'ECl', 'numeric_truth', "nm_l2f__mlp__" + T.truth_id(s) + "__gamma1+lambda1+delta+epsilon.mat");
     if ~isfile(f) || isempty(whos('-file', f, 'result')), continue; end
     S = load(f, 'result', 'trace', 'best');
+    S.result.nmse = S.result.nmse * fnum(s, 1);   % to NMSE
+    [S.trace.nmse] = deal(0);   % replaced below
+    numN = load(truth_file("numeric", "ECl", T.truth_id(s)), 'N');
+    for k = 1:numel(S.trace), S.trace(k).nmse = nmse_eq7(S.trace(k).N, numN.N); end
     joint(s).trace = S.trace;  joint(s).result = S.result;  joint(s).best = S.best;
     r = S.result;
     rows(end+1, :) = {T.truth_id(s), r.recovered_value(1) / T.gamma1(s), r.recovered_value(2) / T.lambda1(s), ...
@@ -133,7 +149,7 @@ for p = 1:4
         end
         set(ax, 'YScale', 'log');
         if is_log(p), set(ax, 'XScale', 'log'); end
-        xlim(ax, prange(p, :));  ylim(ax, [1e-5 3]);   % the control curve is ~0 at the true value
+        xlim(ax, prange(p, :));  ylim(ax, [1e-5 10]);   % the control curve is ~0 at the true value
         title(ax, truth_label{s}, 'FontWeight', 'normal', 'FontSize', 8);
         xlabel(ax, ptex(p));
         if mod(s, 4) == 1, ylabel(ax, 'NMSE'); end
@@ -204,7 +220,7 @@ for p = 1:4
     ax1 = nexttile(tl, p);  ax2 = nexttile(tl, p + 4);
     if ~isfile(f), continue; end
     S = load(f, 'trace', 'result');
-    v = [S.trace.value];  l = [S.trace.nmse];
+    v = [S.trace.value];  l = [S.trace.nmse] * fnum(ex, 1);   % to NMSE
     hold(ax1, 'on');  box(ax1, 'on');  grid(ax1, 'on');
     plot(ax1, 1:numel(v), v, '-o', 'Color', col.ECl, 'MarkerFaceColor', col.ECl, 'MarkerSize', 4);
     yline(ax1, T{ex, params(p)}, ':', 'true', 'LineWidth', 1.2);

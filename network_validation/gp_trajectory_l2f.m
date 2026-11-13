@@ -5,8 +5,8 @@ function P = gp_trajectory_l2f(every, run_set)
 % variance rise when the simulation leaves the training distribution?
 % At every 'every'-th time point: the largest N over the regions relative to
 % the largest N of the MLP/GP training data, the median and maximum GP flux
-% s.d. over the active edges, and the NMSE of the GP run against the numeric
-% run up to that time point.
+% s.d. over the active edges, and the NMSE (Eq. 7, nmse_eq7.m) of the GP run
+% against the numeric run up to that time point.
 % Writes results/gp_trajectory_l2f.csv; with run_set = "consistent" (l2f_runs.m)
 % the runs in outputs_consistent/, into results/gp_trajectory_l2f_consistent.csv.
 %
@@ -51,7 +51,7 @@ for s = 1:height(T)
         end
         a = g.N(:, 1:h);  b = n.N(:, 1:h);
         rows(end+1, :) = {seeds(k), id, g.trange(h) * 180, max(g.N(:, h)) / Ntrain_max, median(sd), max(sd), ...
-            sum((a(:) - b(:)).^2) / sum(b(:).^2)}; %#ok<AGROW>
+            nmse_eq7(a, b)}; %#ok<AGROW>
     end
 end
 end

@@ -1,0 +1,6 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon,init_rescale,lambda2
+timing__interp__ECl__g5e-05_l0.01_d10_e50__rep1,interp,timing__g5e-05_l0.01_d10_e50__ECl,timing_fig8,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,50,0.002,0.01
+timing__interp__ECl__g5e-05_l0.01_d10_e50__rep2,interp,timing__g5e-05_l0.01_d10_e50__ECl,timing_fig8,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,50,0.002,0.01
+timing__interp__ECl__g5e-05_l0.01_d10_e50__rep3,interp,timing__g5e-05_l0.01_d10_e50__ECl,timing_fig8,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,50,0.002,0.01
+timing__interp__ECl__g5e-05_l0.01_d10_e50__rep4,interp,timing__g5e-05_l0.01_d10_e50__ECl,timing_fig8,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,50,0.002,0.01
+timing__interp__ECl__g5e-05_l0.01_d10_e50__rep5,interp,timing__g5e-05_l0.01_d10_e50__ECl,timing_fig8,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,50,0.002,0.01

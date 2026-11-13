@@ -3,7 +3,7 @@ function plot_fig_sy(out_file, run_set)
 % NTM over the 8 l2f parameter settings and the seeds in
 % results/network_checks_l2f.csv (run network_checks_l2f first), or, with
 % run_set = "consistent", in results/network_checks_l2f_consistent.csv.
-% (a) NMSE = sum (s - n)^2 / sum n^2 over all regions and time points, one point
+% (a) NMSE (Eq. 7, nmse_eq7.m) over all regions and time points, one point
 %     per simulation, log scale; (b) R^2 over the same points.
 % Non-finite simulations are drawn at the top of (a) as crosses; in (b) the
 % axis stops at R^2 = -1 (a diverged GP simulation reaches -2e3).

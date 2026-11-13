@@ -62,15 +62,19 @@ switch method
         sur.w1_fun = @(g,l,d,e,N1,N2,~) apply_rowwise(predict_w,g,l,d,e,N1,N2);
 
     case 'interp'
-        % Nearest-neighbour lookup on the same 10k subset as interpolant.m.
-        % Unlike griddatan on raw inputs, features are z-scored first so that
-        % delta/epsilon (~1e1) do not swamp N1/N2 (~1e-3) in the distance.
-        T = training_subset(cfg, cfg.interp_train_size);
-        mu = mean(T(:,1:6)); sd = std(T(:,1:6));
-        tree = KDTreeSearcher((T(:,1:6) - mu) ./ sd);
+        % Nearest-neighbour lookup (= griddatan 'nearest') on the training samples of
+        % interp_training_data.m (all 10^6 MLP training samples; 10^4 before 11/13). Unlike griddatan on raw inputs, the inputs in
+        % cfg.interp_log_inputs (log gamma1, log lambda1) are put on log10 scale and
+        % then all are z-scored, so that delta/epsilon (~1e1) do not swamp N1/N2
+        % (~1e-3) in the distance and gamma1 (5e-5..0.05) is resolved at the low end.
+        T = interp_training_data(cfg);
+        L = []; if isfield(cfg, 'interp_log_inputs'), L = cfg.interp_log_inputs; end
+        tf = @(X) log_cols(X, L);
+        Z = tf(T(:,1:6)); mu = mean(Z); sd = std(Z);
+        tree = KDTreeSearcher((Z - mu) ./ sd);
         yf = T(:,7); yw = T(:,8);
-        predict_f = @(X) yf(knnsearch(tree, (X - mu) ./ sd));
-        predict_w = @(X) yw(knnsearch(tree, (X - mu) ./ sd));
+        predict_f = @(X) yf(knnsearch(tree, (tf(X) - mu) ./ sd));
+        predict_w = @(X) yw(knnsearch(tree, (tf(X) - mu) ./ sd));
         sur.flux_fun = @(g,l,d,e,N1,N2) gate_flux(apply_rowwise(predict_f,g,l,d,e,N1,N2), N1, N2);
         sur.w1_fun = @(g,l,d,e,N1,N2,~) apply_rowwise(predict_w,g,l,d,e,N1,N2);
 
@@ -103,6 +107,10 @@ for k = 1:numel(model.features)
     idx = sscanf(strrep(char(model.features{k}), 'x', ' '), '%d');
     y = y + model.coef(k) * prod(X(:, idx), 2);
 end
+end
+
+function X = log_cols(X, L)
+X(:, L) = log10(X(:, L));
 end
 
 function F = gate_flux(F, N1, N2)

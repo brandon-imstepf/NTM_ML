@@ -1,4 +1,4 @@
-"""Supplementary Table S2 (R1.m1): error and R^2 of each sNTM against the numeric
+"""Supplementary Table S2 (R1.m1): NMSE (Eq. 7) and R^2 of each sNTM against the numeric
 NTM for each of the 24 simulations in the surrogates' training convention
 (results/network_checks_l2f_consistent.csv, from network_checks_l2f("consistent")).
 Writes results/table_sy_consistent.tex (a LaTeX table body for the supplement).

@@ -1,0 +1,17 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon,init_rescale,lambda2
+edge__g5e-05_l0.01_d10_e100__ECl__numeric_l2f,numeric,edge__g5e-05_l0.01_d10_e100__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,5e-05,0.01,10,100,0.01,0.01
+edge__g5e-05_l0.01_d100_e10__ECl__numeric_l2f,numeric,edge__g5e-05_l0.01_d100_e10__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,5e-05,0.01,100,10,0.01,0.01
+edge__g5e-05_l0.1_d10_e100__ECl__numeric_l2f,numeric,edge__g5e-05_l0.1_d10_e100__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,5e-05,0.1,10,100,0.01,0.01
+edge__g5e-05_l0.1_d100_e10__ECl__numeric_l2f,numeric,edge__g5e-05_l0.1_d100_e10__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,5e-05,0.1,100,10,0.01,0.01
+edge__g0.05_l0.01_d10_e100__ECl__numeric_l2f,numeric,edge__g0.05_l0.01_d10_e100__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,0.05,0.01,10,100,0.01,0.01
+edge__g0.05_l0.01_d100_e10__ECl__numeric_l2f,numeric,edge__g0.05_l0.01_d100_e10__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,0.05,0.01,100,10,0.01,0.01
+edge__g0.05_l0.1_d10_e100__ECl__numeric_l2f,numeric,edge__g0.05_l0.1_d10_e100__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,0.05,0.1,10,100,0.01,0.01
+edge__g0.05_l0.1_d100_e10__ECl__numeric_l2f,numeric,edge__g0.05_l0.1_d100_e10__ECl,consistent_edge,ECl,Hippocampus+PC+RSP,0.05,0.1,100,10,0.01,0.01
+ood__g2.5e-05_l0.008_d8_e110__ECl__numeric_l2f,numeric,ood__g2.5e-05_l0.008_d8_e110__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,2.5e-05,0.008,8,110,0.01,0.01
+ood__g2.5e-05_l0.008_d110_e8__ECl__numeric_l2f,numeric,ood__g2.5e-05_l0.008_d110_e8__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,2.5e-05,0.008,110,8,0.01,0.01
+ood__g2.5e-05_l0.12_d8_e110__ECl__numeric_l2f,numeric,ood__g2.5e-05_l0.12_d8_e110__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,2.5e-05,0.12,8,110,0.01,0.01
+ood__g2.5e-05_l0.12_d110_e8__ECl__numeric_l2f,numeric,ood__g2.5e-05_l0.12_d110_e8__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,2.5e-05,0.12,110,8,0.01,0.01
+ood__g0.1_l0.008_d8_e110__ECl__numeric_l2f,numeric,ood__g0.1_l0.008_d8_e110__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,0.1,0.008,8,110,0.01,0.01
+ood__g0.1_l0.008_d110_e8__ECl__numeric_l2f,numeric,ood__g0.1_l0.008_d110_e8__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,0.1,0.008,110,8,0.01,0.01
+ood__g0.1_l0.12_d8_e110__ECl__numeric_l2f,numeric,ood__g0.1_l0.12_d8_e110__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,0.1,0.12,8,110,0.01,0.01
+ood__g0.1_l0.12_d110_e8__ECl__numeric_l2f,numeric,ood__g0.1_l0.12_d110_e8__ECl,consistent_ood,ECl,Hippocampus+PC+RSP,0.1,0.12,110,8,0.01,0.01

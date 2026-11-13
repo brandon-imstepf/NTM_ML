@@ -1,4 +1,4 @@
-function glass_brain_images(days, methods, out_dir)
+function glass_brain_images(days, methods, out_dir, src_fmt)
 % Glass-brain images for Fig. 7a of GP_manuscript.tex: tau (N + M) at the
 % Fig. 8 parameters (gamma1 5e-5, lambda 0.01, delta 10, epsilon 50, seed ECl,
 % the Table 3 timing runs, repeat 1) for each method and day, drawn with
@@ -11,6 +11,10 @@ function glass_brain_images(days, methods, out_dir)
 %
 %   glass_brain_images();                                  % all methods, days 0 7 15 30 60
 %   glass_brain_images(30, "mlp", 'scratch');
+%   glass_brain_images([], [], out_dir, 'outputs_fig8/fig8__%s__ECl__g5e-05_l0.01_d10_e50.mat')
+%       other runs: src_fmt relative to network_validation/, %s = method
+%       (make_glass_brain_figure.m)
+% Day 0 is drawn for the numeric run only (all methods share the initial state).
 
 here = fileparts(mfilename('fullpath'));
 nv = fileparts(here);
@@ -28,7 +32,10 @@ addpath(bf_root);
 % that toolbox, use the scatter3 stand-ins in bf_shims/
 if isempty(which('pointCloud')), addpath(fullfile(here, 'bf_shims')); end
 
-file = @(m) fullfile(nv, 'outputs_timing', "timing__" + m + "__ECl__g5e-05_l0.01_d10_e50__rep1.mat");
+if nargin < 4 || isempty(src_fmt)
+    src_fmt = 'outputs_timing/timing__%s__ECl__g5e-05_l0.01_d10_e50__rep1.mat';
+end
+file = @(m) fullfile(nv, sprintf(src_fmt, m));
 ref = load(file("numeric"), 'N', 'M', 'trange', 'region_names');
 X_ref = DataToCCF_Transport(ref.N + ref.M, ref.region_names, 1, cfg.matdir);
 scale = max(X_ref(:), [], 'omitnan');
@@ -36,6 +43,7 @@ scale = max(X_ref(:), [], 'omitnan');
 for m = string(methods)
     r = load(file(m), 'N', 'M', 'trange', 'region_names');
     for d = days
+        if d == 0 && m ~= "numeric", continue; end
         [~, h] = min(abs(r.trange * 180 - d));
         X = DataToCCF_Transport(r.N(:, h) + r.M(:, h), r.region_names, 1, cfg.matdir);
         X(isnan(X)) = 0;

@@ -5,7 +5,8 @@ function D = time_step_consistent()
 % the default grid and with the time step limited to 0.225 days (SNTM_DT_MAX),
 % into outputs_t60c_base/ and outputs_t60c_dt0.225/ (finished runs are skipped).
 % Per setting, at the shared time points up to day 59:
-%   mlp_base_vs_dt0225  NMSE between the MLP sNTM on the two grids
+%   mlp_base_vs_dt0225  NMSE (Eq. 7, nmse_eq7.m) of the MLP sNTM on the default grid
+%                       against the MLP sNTM on the 0.225-day grid
 %   mlp_vs_numeric      NMSE of the MLP sNTM against the numeric NTM on the
 %                       default grid (the 180-day runs in outputs_consistent/)
 % Writes results/network_dt_mlp_l2f_consistent.csv.
@@ -30,7 +31,7 @@ for g = 1:2
 end
 setenv('SNTM_T_END', '');  setenv('SNTM_LAMBDA2_W1', '');  setenv('SNTM_DT_MAX', '');  setenv('SNTM_OUT_DIR', '');
 
-nmse = @(s, n) sum((s(:) - n(:)).^2) / sum(n(:).^2);
+nmse = @nmse_eq7;   % Eq. 7 (sse_rel.m before 2026-11-10)
 out = {};
 for r = rows'
     id = M.case_id(r);

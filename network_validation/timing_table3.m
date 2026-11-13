@@ -10,7 +10,7 @@ function R = timing_table3(out_dir)
 
 here = fileparts(mfilename('fullpath'));
 if nargin < 1 || isempty(out_dir), out_dir = fullfile(here, 'outputs_timing'); end
-methods = ["numeric", "mlp", "sr", "gp", "lr"];
+methods = ["numeric", "mlp", "sr", "gp", "lr", "interp"];
 files = dir(fullfile(out_dir, 'timing__*.mat'));
 rows = {};
 for f = files'

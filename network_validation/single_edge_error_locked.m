@@ -4,7 +4,7 @@ function S = single_edge_error_locked()
 % grid of N_1, N_2 in [0, 0.004] at fixed gamma, lambda, delta, epsilon):
 % 8 interior sets, 8 on the corners of the training ranges (edge), 8 outside
 % them (ood), and the Fig. 8 parameters (paper). For R2.M1.
-%   flux_nmse, w1_nmse   sum (s - n)^2 / sum n^2 over the 1024 grid points
+%   flux_nmse, w1_nmse   NMSE (Eq. 7, nmse_eq7.m) over the 1024 grid points
 % Writes results/single_edge_error_locked.csv.
 %
 %   S = single_edge_error_locked();
@@ -13,7 +13,7 @@ here = fileparts(mfilename('fullpath'));
 cfg = sntm_config();
 locked = fullfile(cfg.ntm_ml_root, 'parameter_recovery', 'locked_edge');
 sets = readtable(fullfile(locked, 'locked_sets.csv'), 'TextType', 'string');
-methods = ["mlp", "sr", "gp", "lr"];
+methods = ["mlp", "sr", "gp", "lr", "interp"];   % interp: nearest-neighbour lookup (make_surrogate.m)
 sur = struct();
 for m = methods, sur.(m) = make_surrogate(char(m), cfg); end
 
@@ -42,7 +42,8 @@ end
 end
 
 function v = nmse(s, n)
-v = sum((s(:) - n(:)).^2) / sum(n(:).^2);
+% Eq. 7 (sum (s - n)^2 / sum n^2 before 2026-11-10)
+v = nmse_eq7(s, n);
 end
 
 function s = mmm(x)

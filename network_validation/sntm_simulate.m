@@ -5,6 +5,11 @@ function out = sntm_simulate(cfg, sur, use_sur, p, seed, subset, init_rescale, s
 % and W1; false runs the numeric model. Shared by run_sntm_cases.m and
 % nelder_mead_network_recovery.m so both simulate the same way.
 
+% use_sur may also be [use_flux, use_w1] to take phi_tau and Delta_tau (W1) from
+% different sources (surrogate or numeric), e.g. [0 1] = numeric flux with the
+% surrogate's W1 (swap test, fig8_swap_runs.m); a scalar applies to both.
+use_flux = use_sur(1);  use_w1 = use_sur(end);
+
 % flux_per_edge (SNTM_FLUX_PER_EDGE=1) is passed only when set, so runs with the
 % original simulator code, which lacks the option, are unaffected
 extra = {};
@@ -22,6 +27,6 @@ out = NetworkTransportModel(cfg.matdir, ...
     'init_rescale', init_rescale, 'init_path', {cfg.seeds(char(seed))}, ...
     'study', cfg.study, 'connectome_subset', char(subset), 'conn_thresh', cfg.conn_thresh, ...
     'sim_no', sim_no, ...
-    'use_sr_flux', double(use_sur), 'sr_fun_flux', sur.flux_fun, 'sr_fun_em', sur.em_fun, ...
-    'use_sr_w1', double(use_sur), 'sr_fun_w1', sur.w1_fun, extra{:});
+    'use_sr_flux', double(use_flux), 'sr_fun_flux', sur.flux_fun, 'sr_fun_em', sur.em_fun, ...
+    'use_sr_w1', double(use_w1), 'sr_fun_w1', sur.w1_fun, extra{:});
 end

@@ -1,13 +1,16 @@
 """Fig. 2 of GP_manuscript.tex: the workflow diagram of the paper (originally
 drawn in Google Drawings, images/Workflow_Figure.png), redrawn as SVG with a
-Gaussian process block among the surrogate models.
+Gaussian process block and a nearest-neighbor interpolation (griddatan) block
+among the surrogate models (the latter added 2026-11-13; the canvas grew from
+1080 to 1185 px high to fit it).
 
     python make_workflow_svg.py            # figures/workflow_gp.svg
 """
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-W, H = 1920, 1080
+DY = 135               # extra height for the nearest-neighbor block
+W, H = 1920, 1050 + DY
 FONT = "font-family:'Times New Roman',Times,serif"
 out = []
 
@@ -79,7 +82,7 @@ for i, c in enumerate(cols):
     text(x0 + i * cw + cw / 2, 243, c, 26, style="font-style:italic")
 
 # Machine learning surrogate models
-rect(1055, 15, 850, 1020, "#d9d2e9")
+rect(1055, 15, 850, 1020 + DY, "#d9d2e9")
 text(1075, 82, "Machine Learning Surrogate Models", 46, "start", "bold")
 px, pw = 1070, 820
 # Linear regression
@@ -117,7 +120,21 @@ for o in obs:
     add(f'<circle cx="{o}" cy="{gy + 55 - 28 * math.sin((o - gx) / 75):.1f}" r="6" fill="#222"/>')
 text(gx + gw + 15, gy + 40, "mean", 26, "start")
 text(gx + gw + 15, gy + 75, "± s.d.", 26, "start")
-# MLP neural network
+# Nearest-neighbor interpolation (griddatan): training points, a query point and
+# its nearest training point
+rect(px, 669, pw, 122, "#b4a7d6")
+lines(1290, 718, ["Nearest-neighbor", "interpolation"], 40, 44)
+pts = [(1540, 700), (1600, 752), (1652, 694), (1700, 760), (1776, 694), (1812, 752), (1846, 696),
+       (1575, 776), (1790, 776), (1630, 730)]
+q = (1730, 728)
+near = min(pts, key=lambda p: (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2)
+add(f'<line x1="{q[0]:.1f}" y1="{q[1]:.1f}" x2="{near[0]:.1f}" y2="{near[1]:.1f}" stroke="#3c2a78" stroke-width="3"/>')
+for (a, b) in pts:
+    add(f'<circle cx="{a:.1f}" cy="{b:.1f}" r="6" fill="#222"/>')
+add(f'<circle cx="{near[0]:.1f}" cy="{near[1]:.1f}" r="10" fill="none" stroke="#3c2a78" stroke-width="3"/>')
+add(f'<polygon points="{q[0]},{q[1] - 12} {q[0] + 11},{q[1]} {q[0]},{q[1] + 12} {q[0] - 11},{q[1]}" fill="#6a5acd" stroke="#3c2a78" stroke-width="2"/>')
+# MLP neural network (moved down by DY)
+add(f'<g transform="translate(0,{DY})">')
 rect(px, 669, pw, 353, "#b4a7d6")
 text(px + pw / 2, 716, "MLP neural network", 42)
 text(1480, 760, "Hidden Layers", 32)
@@ -145,6 +162,7 @@ for x in hx:
     text(x, 965, "⋮", 30)
 text(1528, 905, "…", 30)
 add(f'<circle cx="{out_xy[0]}" cy="{out_xy[1]}" r="16" fill="#efefef" stroke="#888" stroke-width="1"/>')
+add("</g>")
 
 # "Training" cross-shaped connector
 add('<polygon points="1020,140 1072,140 1072,195 1130,195 1130,248 1072,248 1072,302 1020,302 1020,248 960,248 960,195 1020,195" '
@@ -153,8 +171,9 @@ text(1045, 235, "Training", 36)
 
 
 # Testing
-rect(481, 462, 574, 572, "#d9ead3")
+rect(481, 462, 574, 572 + DY, "#d9ead3")
 text(502, 527, "Testing", 46, "start", "bold")
+add(f'<g transform="translate(0,{DY // 2})">')
 rect(509, 561, 466, 212, "#efefef")
 computer(552, 580, 0.95)
 rect(696, 596, 262, 142, "#efefef")
@@ -165,15 +184,18 @@ rect(696, 802, 262, 176, "#efefef")
 lines(827, 860, ["Predictive", "accuracy for"])
 text(827, 948, "φ<tspan font-size='24' dy='8'>τ</tspan><tspan dy='-8'>, Δ</tspan><tspan font-size='24' dy='8'>τ</tspan>", 40, style="font-style:italic")
 arrow(1093, 758, 982, 758)
+add("</g>")
 
 # Biophysical analysis
-rect(15, 462, 443, 572, "#fce5cd")
+rect(15, 462, 443, 572 + DY, "#fce5cd")
 text(28, 527, "Biophysical Analysis", 46, "start", "bold")
+add(f'<g transform="translate(0,{DY // 2})">')
 rect(86, 561, 308, 160, "#efefef")
 lines(240, 610, ["Anterograde vs.", "retrograde", "transport regimes"])
 rect(86, 800, 308, 160, "#efefef")
 lines(240, 848, ["Relate Tau flux", "(φ<tspan font-size='24' dy='8'>τ</tspan><tspan dy='-8'>) to NTM</tspan>", "parameters"])
 arrow(495, 758, 382, 758)
+add("</g>")
 
 add("</svg>")
 (HERE / "figures").mkdir(exist_ok=True)

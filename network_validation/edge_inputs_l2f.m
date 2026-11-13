@@ -11,7 +11,7 @@ function E = edge_inputs_l2f(n_gp, run_set)
 %     training maximum, its 99th and its 99.9th percentile.
 %   Edge error: each surrogate's phi_tau and Delta_tau at the numeric states,
 %     against the numeric F and W1 at the same states:
-%     sum (s - n)^2 / sum n^2 over edges and time points; also restricted to
+%     NMSE (Eq. 7, nmse_eq7.m) over edges and time points; also restricted to
 %     the low-N edge of the training domain (edges with a nonzero N below the
 %     training 1st percentile) and to the other edges.
 %   GP variance: predictive standard deviation of the GP flux model at n_gp
@@ -122,7 +122,8 @@ fprintf('\n== GP predictive s.d. (flux units)\n');  disp(E.gp)
 end
 
 function v = nmse(s, n)
-v = sum((s(:) - n(:)).^2) / sum(n(:).^2);
+% Eq. 7 (sum (s - n)^2 / sum n^2 before 2026-11-10)
+v = nmse_eq7(s, n);
 end
 
 function s = mmm(x)

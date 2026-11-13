@@ -1,0 +1,2 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon,init_rescale,lambda2
+rec_l2f__interp__CA1__g0.005_l0.02_d20_e80,interp,rec_l2f__g0.005_l0.02_d20_e80__CA1,consistent_l2f,CA1,Hippocampus+PC+RSP,0.005,0.02,20,80,0.01,0.01

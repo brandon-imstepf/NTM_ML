@@ -4,9 +4,12 @@ function A = network_checks_l2f(run_set)
 % the numeric runs, as in the surrogates' training data; 30 regions, 180 days),
 % for the reviewer responses (R1.m1, R2.M4). Seed ECl from outputs_recovery/;
 % seeds CA1 and RSPd (manifests/seeds_l2f_*.csv) from outputs_seeds/, where present.
-%   nmse         sum (s - n)^2 / sum n^2 over all regions and time points
-%   r2           1 - sum (s - n)^2 / sum (n - mean n)^2, same points
+%   nmse         NMSE (Eq. 7, nmse_eq7.m): sum (s - n)^2 / sum (n - mean n)^2 over
+%                all regions and time points
+%   r2           1 - nmse (R^2 against y = x over the same points)
 %   nmse_last30  nmse over days 150-180
+%   sse_rel, sse_rel_last30  sum (s - n)^2 / sum n^2 (sse_rel.m), the metric
+%                reported before 2026-11-10
 %   min_N        smallest N of the run (negative = loss of non-negativity)
 %   n_negative   number of N values below 0
 %   n_clamped    number of N values equal to eps: NetworkTransportModel replaces
@@ -48,17 +51,18 @@ for s = 1:height(T)
     for m = methods
         r = load(seed_file(k, m, T.truth_id(s)), 'N', 'runtime_s');
         N = r.N;  n = num.N;
-        nmse = sum((N(:) - n(:)).^2) / sum(n(:).^2);
-        r2 = 1 - sum((N(:) - n(:)).^2) / sum((n(:) - mean(n(:))).^2);
-        nmse_last = sum((N(:, last30) - n(:, last30)).^2, 'all') / sum(n(:, last30).^2, 'all');
+        nmse = nmse_eq7(N, n);
+        r2 = 1 - nmse;
+        nmse_last = nmse_eq7(N(:, last30), n(:, last30));
         rel_change = max(abs(N(:, end) - N(:, end-1))) / max(N(:));
         rows(end+1, :) = {seeds(k), T.truth_id(s), m, nmse, r2, nmse_last, min(N(:)), sum(N(:) < 0), ...
-            sum(N(:) == eps), all(isfinite(N(:))), rel_change, r.runtime_s}; %#ok<AGROW>
+            sum(N(:) == eps), all(isfinite(N(:))), rel_change, r.runtime_s, sse_rel(N, n), ...
+            sse_rel(N(:, last30), n(:, last30))}; %#ok<AGROW>
     end
 end
 end
 A = cell2table(rows, 'VariableNames', {'seed', 'truth_id', 'method', 'nmse', 'r2', 'nmse_last30', 'min_N', ...
-    'n_negative', 'n_clamped', 'finite', 'rel_change_last', 'runtime_s'});
+    'n_negative', 'n_clamped', 'finite', 'rel_change_last', 'runtime_s', 'sse_rel', 'sse_rel_last30'});
 writetable(A, fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"));
 
 fprintf('== l2f truths, 180 days, seeds %s: median [min, max] over %d simulations per method\n', ...
@@ -86,7 +90,7 @@ for s = 1:height(T)
     [~, ib, jf] = intersect(round(b.trange * 180, 6), round(f.trange * 180, 6));
     keep = b.trange(ib) * 180 <= 59;
     ib = ib(keep);  jf = jf(keep);
-    d = @(x, y) sum((x(:) - y(:)).^2) / sum(y(:).^2);
+    d = @nmse_eq7;
     rows(end+1, :) = {T.truth_id(s), d(b.N(:, ib), f.N(:, jf)), d(nb.N(:, ib), nf.N(:, jf)), ...
         d(f.N, nf.N)}; %#ok<AGROW>
 end
