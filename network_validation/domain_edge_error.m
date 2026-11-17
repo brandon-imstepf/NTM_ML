@@ -32,7 +32,7 @@ H = readmatrix(fullfile(dd, 'data_bias_e5_11.csv'));
 X = H(:, 1:6);  Y = H(:, 7:8);
 inputs = ["gamma", "lambda", "delta", "epsilon", "N1", "N2"];
 targets = ["flux", "w1"];
-methods = ["mlp", "gp", "sr", "lr"];
+methods = ["mlp", "gp", "interp", "sr", "lr"];   % interp (1-NN) added 11/16
 
 % Position of each held-out input in the sampling distribution
 U = zeros(size(X));

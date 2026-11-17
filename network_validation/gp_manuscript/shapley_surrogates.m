@@ -1,4 +1,4 @@
-function shapley_surrogates(models, n_query, n_back)
+function shapley_surrogates(models, n_query, n_back, background)
 % Shapley values of the inputs of the GP and of the nearest-neighbour
 % interpolant (griddatan 'nearest'; the "interp" sNTM of make_surrogate.m),
 % for phi_tau and Delta_tau.
@@ -31,6 +31,12 @@ function shapley_surrogates(models, n_query, n_back)
 if nargin < 1 || isempty(models), models = ["gp", "interp"]; end
 if nargin < 2 || isempty(n_query), n_query = 300; end
 if nargin < 3 || isempty(n_back), n_back = 50; end
+% background: "own" (each model's training samples; default) or "common" (the same
+% n_back samples of data_bias_e5_1.csv for every model, from which the GP's training
+% rows were drawn and which is part of the MLP's and nearest-neighbor's training data;
+% for comparing models point by point; files shapley_<model>_<target>_commonbg.csv)
+if nargin < 4 || isempty(background), background = "own"; end
+background = string(background);
 here = fileparts(mfilename('fullpath'));
 nv = fileparts(here);
 addpath(nv);
@@ -66,13 +72,17 @@ for m = string(models)
     rng(1);
     Xq = heldout(randperm(size(heldout, 1), n_query), 1:6);
     Xb = train(randperm(size(train, 1), n_back), 1:6);
+    if background == "common"
+        rng(2);  Xb = super(randperm(size(super, 1), n_back), 1:6);
+    end
     targets = ["flux", "emc"];
     for t = 1:2
         tic;
         [phi, fx, base] = shapley_exact(f{t}, Xq, Xb);
         T = [array2table(Xq, 'VariableNames', names), array2table(phi, 'VariableNames', "phi_" + names), ...
             table(fx, repmat(base, n_query, 1), 'VariableNames', ["f_x", "base"])];
-        out = fullfile(nv, 'results', "shapley_" + m + "_" + targets(t) + ".csv");
+        sfx = "";  if background == "common", sfx = "_commonbg"; end
+        out = fullfile(nv, 'results', "shapley_" + m + "_" + targets(t) + sfx + ".csv");
         writetable(T, out);
         save_target_std(fullfile(nv, 'results', 'shapley_target_std.csv'), m, targets(t), std(train(:, 6 + t)));
         fprintf('%s %s: %.0f s, mean |phi|: %s; additivity error %.2g\n', m, targets(t), toc, ...

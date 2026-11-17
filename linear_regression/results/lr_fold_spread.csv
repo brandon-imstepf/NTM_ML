@@ -1,0 +1,21 @@
+target,fold,val_nmse,selected,features
+phi_tau,1,0.4062052336886403,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,2,0.2880461048780679,True,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,3,0.380992552412642,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,4,0.3373279700003442,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,5,0.34053549591497206,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,6,0.41016977596805887,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,7,0.5268750367713895,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,8,0.3588786661884709,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,9,0.42150200319331554,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+phi_tau,10,0.4679180691296999,False,x6 x1 x3x5 x1x1 x1x5 x1x3 x4 x2x5 x1x6 x2x6
+Delta_tau,1,0.4265012918719127,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,2,0.4066630108784157,True,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,3,0.4456508771680339,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,4,0.4465895362813933,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,5,0.4526290451750273,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,6,0.4298652729711342,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,7,0.7225976574119108,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,8,0.4259482281731956,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,9,0.4994704613142504,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4
+Delta_tau,10,0.4272089741316683,False,x1 x1x1 x2x3 x4x5 x4x6 x1x2 x2 x2x2 x2x5 x2x4

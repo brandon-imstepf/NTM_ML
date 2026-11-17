@@ -36,20 +36,22 @@ for t = 1:2
     end
     [vg, kg] = min(gd.("heldout_" + target(t) + "_nmse_mean"));
     h(end+1) = yline(ax, vg, ':', 'Color', 'k', 'LineWidth', 1.2);
-    lab{end+1} = "griddatan, best (" + strrep(extractAfter(gd.model(kg), "griddatan_"), "_", " ") + ")";
+    % (11/17) named as in the paper; the best interpolation is 1-NN with scaled inputs
+    lab{end+1} = "1-NN interpolation, scaled inputs, " + string(gd.n_train(kg)) + " samples";
     m = gp.("heldout_" + target(t) + "_nmse_mean");  s = gp.("heldout_" + target(t) + "_nmse_sd");
     h(end+1) = errorbar(ax, gp.n_train, m, s, '-o', 'Color', [0.11 0.62 0.47], 'MarkerFaceColor', [0.11 0.62 0.47], ...
         'LineWidth', 1.4, 'MarkerSize', 6);
-    lab{end+1} = 'GP, training rows of the MLP data';
+    lab{end+1} = 'GP, samples of the MLP training data';
     h(end+1) = errorbar(ax, lrsr.n_train + 150, lrsr.("heldout_" + target(t) + "_nmse_mean"), ...
         lrsr.("heldout_" + target(t) + "_nmse_sd"), 's', 'Color', [0.11 0.62 0.47], 'MarkerFaceColor', 'w', 'MarkerSize', 8, 'LineWidth', 1.4);
     lab{end+1} = 'GP, LR/SR training set (10^3)';
-    set(ax, 'YScale', 'log', 'XLim', [0 5500], 'FontSize', 9, 'TickDir', 'out');
+    set(ax, 'YScale', 'log', 'XLim', [0 8000], 'FontSize', 9, 'TickDir', 'out');
+    yl = ylim(ax);  set(ax, 'YTick', 10.^(floor(log10(yl(1))):ceil(log10(yl(2)))));   % every decade labelled
     xlabel(ax, 'GP training samples');
     ylabel(ax, "held-out NMSE, " + tlab(t));
     title(ax, tlab(t), 'FontWeight', 'normal');
 end
-lg = legend(h, lab, 'Orientation', 'horizontal', 'NumColumns', 3, 'FontSize', 8);  lg.Layout.Tile = 'south';
+lg = legend(h, lab, 'Orientation', 'horizontal', 'NumColumns', 2, 'FontSize', 8);  lg.Layout.Tile = 'south';
 exportgraphics(fig, out_file + ".png", 'Resolution', 300);
 exportgraphics(fig, out_file + ".pdf", 'ContentType', 'vector');
 fprintf('wrote %s.png/.pdf\n', out_file);

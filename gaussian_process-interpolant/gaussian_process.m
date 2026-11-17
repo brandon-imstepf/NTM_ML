@@ -15,7 +15,7 @@ training_superset = readmatrix(tr_filepath);
 % subset data based off seed
 training_seed = 42;
 rng(training_seed)
-dataset_size = 5000;
+dataset_size = 7500;
 training_idx = randperm(100000,dataset_size);
 training_dataset = training_superset(training_idx,:);
 
@@ -45,19 +45,21 @@ KernelFunctionList = ["Exponential","SquaredExponential","Matern32",...
     "ARDMatern32","ARDMatern52","ARDRationalQuadratic"];
 OptimizerList = ["quasinewton","lbfgs","fminsearch","fminunc","fmincon"];
 
-% Best performing model list -
-best_models = [
-    "exact","linear","ARDMatern32","lbfgs";
-    "sd",   "linear","ARDMatern32","lbfgs";
-    "exact","linear","ARDMatern32","fmincon";
-    "sd",   "linear","ARDMatern32","fmincon";
-    "exact","linear","ARDMatern32","fminunc";
-    "sd",   "linear","ARDMatern32","fminunc";
-    "exact","linear","ARDMatern32","quasinewton";
-    "sd",   "linear","ARDMatern32","quasinewton";
-    "fic",  "linear","ARDMatern32","lbfgs";
-    "fic",  "linear","ARDMatern32","fmincon"
-];
+% % Best performing model list -
+% best_models = [
+%     "exact","linear","ARDMatern32","lbfgs";
+%     "sd",   "linear","ARDMatern32","lbfgs";
+%     "exact","linear","ARDMatern32","fmincon";
+%     "sd",   "linear","ARDMatern32","fmincon";
+%     "exact","linear","ARDMatern32","fminunc";
+%     "sd",   "linear","ARDMatern32","fminunc";
+%     "exact","linear","ARDMatern32","quasinewton";
+%     "sd",   "linear","ARDMatern32","quasinewton";
+%     "fic",  "linear","ARDMatern32","lbfgs";
+%     "fic",  "linear","ARDMatern32","fmincon"
+% ];
+
+best_models = ["exact","linear","ARDMatern32","fminunc"];
 
 
 % load validation

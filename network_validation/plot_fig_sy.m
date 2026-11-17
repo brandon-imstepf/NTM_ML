@@ -11,14 +11,25 @@ function plot_fig_sy(out_file, run_set)
 %   plot_fig_sy();                          % outputs_nm/fig_sy.png and .pdf
 %   plot_fig_sy('figs/fig_sy');
 %   plot_fig_sy([], "consistent");             % outputs_nm/fig_sy_consistent.png and .pdf
+%   plot_fig_sy([], "all");    % interior runs of results/network_error_all.csv
+%                              % (gp_manuscript/network_error_all.m), with nearest neighbor
 
 here = fileparts(mfilename('fullpath'));
 if nargin < 2, run_set = "original"; end
-[~, tag] = l2f_runs(run_set);
-if nargin < 1 || isempty(out_file), out_file = fullfile(here, 'outputs_nm', "fig_sy" + tag); end
-A = readtable(fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"), 'TextType', 'string');
 methods = ["mlp", "gp", "sr", "lr"];
 labels = ["MLP", "GP", "SR", "LR"];
+if string(run_set) == "all"
+    tag = "_all";
+    A = readtable(fullfile(here, 'results', 'network_error_all.csv'), 'TextType', 'string');
+    A = A(A.group == "interior", :);
+    A.nmse(A.finite == 0) = Inf;  A.r2(A.finite == 0) = -Inf;    % drawn as crosses, not in medians
+    methods = ["mlp", "gp", "interp", "lr", "sr"];
+    labels = ["MLP", "GP", "1-NN", "LR", "SR"];
+else
+    [~, tag] = l2f_runs(run_set);
+    A = readtable(fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"), 'TextType', 'string');
+end
+if nargin < 1 || isempty(out_file), out_file = fullfile(here, 'outputs_nm', "fig_sy" + tag); end
 seeds = unique(A.seed, 'stable');
 colors = [0.17 0.40 0.69; 0.85 0.45 0.10; 0.30 0.62 0.30];   % one per seed
 markers = ['o', 's', '^'];
@@ -45,7 +56,7 @@ for p = 1:2
             end
         end
         y = A.(metrics{p})(A.method == methods(k));
-        plot(ax, k + [-0.35 0.35], median(y, 'omitnan') * [1 1], 'k-', 'LineWidth', 1.5, 'HandleVisibility', 'off');
+        plot(ax, k + [-0.35 0.35], median(y(isfinite(y))) * [1 1], 'k-', 'LineWidth', 1.5, 'HandleVisibility', 'off');
     end
     set(ax, 'XTick', 1:numel(methods), 'XTickLabel', labels, 'XLim', [0.4, numel(methods) + 0.6], ...
         'FontSize', 9, 'TickDir', 'out', 'Box', 'off');

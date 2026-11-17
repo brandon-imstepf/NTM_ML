@@ -19,7 +19,7 @@ font = 'Times New Roman';
 inputs = ["gamma1", "lambda1", "delta", "epsilon", "N1", "N2"];
 ilab = ["\gamma", "\lambda", "\delta", "\epsilon", "N_1", "N_2"];
 targets = ["flux", "emc"];  tlab = ["\phi_\tau", "\Delta_\tau"];
-mlab = struct('gp', "Gaussian process", 'interp', "Nearest-neighbor interpolation", ...
+mlab = struct('gp', "Gaussian process", 'interp', "1-Nearest-neighbor interpolation", ...
     'lr', "Linear regression", 'sr', "Symbolic regression");
 cmap = interp1([0 0.5 1], [0.12 0.40 0.75; 0.85 0.85 0.85; 0.80 0.15 0.15], linspace(0, 1, 256));
 share = struct();
@@ -75,7 +75,7 @@ if all(isfield(share, ["gp", "interp"]))
         set(ax, 'XTickLabel', ilab, 'FontName', font, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on');
         title(ax, tlab(t), 'FontName', font, 'FontSize', 16, 'FontWeight', 'normal');
         if t == 1, ylabel(ax, 'Share of mean |Shapley value| (%)', 'FontName', font, 'FontSize', 11); end
-        if t == 2, legend(ax, ["Gaussian process", "Nearest-neighbor interpolation"], 'FontName', font, 'FontSize', 10, 'Location', 'northeast'); end
+        if t == 2, legend(ax, ["Gaussian process", "1-Nearest-neighbor interpolation"], 'FontName', font, 'FontSize', 10, 'Location', 'northeast'); end
     end
     save_fig(fig, fullfile(fig_dir, "shapley_importance_gp_vs_interp"));
 end

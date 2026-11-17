@@ -35,6 +35,8 @@ T = T(T.convention == "l2f", :);
 methods = ["mlp", "sr", "gp", "lr"];
 seeds = ["ECl", "CA1", "RSPd"];
 [seed_dirs, tag] = l2f_runs(run_set);
+% 1-nearest-neighbor interpolation was run for the consistent set only
+if string(run_set) == "consistent", methods = [methods, "interp"]; end
 seed_file = @(k, m, id) fullfile(here, seed_dirs(k), "rec_l2f__" + m + "__" + seeds(k) + "__" + id + ".mat");
 
 % N columns of the MLP training data

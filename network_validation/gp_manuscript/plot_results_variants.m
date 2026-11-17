@@ -12,6 +12,10 @@ function plot_results_variants(which)
 %   gd_results_v2   as gp_results_v2, for the network model (log gamma, lambda; 10^6)
 %   gd_results_v3   gd v1 (top) and v2 (bottom) together
 %   gd_results_v4   as gp_results_v4, for the network model
+%   gp_results_v5   (a) training and held-out NMSE against the fixed noise standard
+%                   deviation (gp_sigma_curve.csv, gp_sigma_curve.m), (b) as v2 (11/16)
+%   gd_results_v5   (a) held-out NMSE of the three input scalings at 10^6 training
+%                   samples (griddatan_size_curve.csv), (b) as v2 (11/16)
 % Held out: data_bias_e5_11.csv (10^5; never used for fitting or selection).
 % GP: the paper's GP (n = 5000). griddatan network model: nearest neighbour over
 % 10^6 rows on log10 gamma1, log10 lambda1 and the other inputs, all z-scored
@@ -38,11 +42,11 @@ for w = string(which)
             plot_gp_results_fig(fullfile(fig_dir, stem + "_v1"));
         end
     else
-        pred = P.interp;  name = "Nearest-neighbor interpolation";  stem = "gd_results";
+        pred = P.interp;  name = "1-Nearest-neighbor interpolation";  stem = "gd_results";
         fig = figure('Visible', 'off', 'Units', 'centimeters', 'Position', [2 2 20 9], 'Color', 'w');
         tl = tiledlayout(fig, 1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
         gd_size_panels(tl, nv, font, tlab);
-        title(tl, 'Nearest-neighbor interpolation training set size', 'FontName', font, 'FontSize', 18, 'FontWeight', 'bold');
+        title(tl, '1-Nearest-neighbor interpolation training set size', 'FontName', font, 'FontSize', 18, 'FontWeight', 'bold');
         save_fig(fig, fullfile(fig_dir, stem + "_v1"));
     end
 
@@ -71,6 +75,74 @@ for w = string(which)
     decile_panels(tl, P.X, P.y, pred, font, tlab);
     title(tl, name + ": held-out error across the input space", 'FontName', font, 'FontSize', 16, 'FontWeight', 'bold');
     save_fig(fig, fullfile(fig_dir, stem + "_v4"));
+
+    % v5: noise level (GP) or input scaling (1-NN) + parity
+    fig = figure('Visible', 'off', 'Units', 'centimeters', 'Position', [2 2 20 18], 'Color', 'w');
+    tl = tiledlayout(fig, 2, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
+    if w == "gp", gp_sigma_panels(tl, nv, font, tlab); else, gd_scaling_panels(tl, nv, font, tlab); end
+    parity_panels(tl, P.y, pred, font, tlab);
+    title(tl, name, 'FontName', font, 'FontSize', 18, 'FontWeight', 'bold');
+    for pl = [struct('s', 'a', 'y', 0.90), struct('s', 'b', 'y', 0.44)]     % panel letters
+        annotation(fig, 'textbox', [0.005 pl.y 0.05 0.05], 'String', pl.s, 'FontName', font, 'FontSize', 20, ...
+            'FontWeight', 'bold', 'EdgeColor', 'none');
+    end
+    save_fig(fig, fullfile(fig_dir, stem + "_v5"));
+end
+end
+
+function gp_sigma_panels(tl, nv, font, tlab)
+% training and held-out NMSE against the noise standard deviation, fixed at each
+% value (gp_sigma_curve.m); the paper's GP (noise at the lower bound 0.01) in red
+T = sortrows(readtable(fullfile(nv, 'results', 'gp_sigma_curve.csv')), 'sigma');
+target = ["flux", "emc"];
+c_train = [0 0.447 0.741];  c_test = [0.466 0.674 0.188];  c_sel = [1 0 0];
+for t = 1:2
+    ax = nexttile(tl);  hold(ax, 'on');  box(ax, 'on');
+    h1 = errorbar(ax, T.sigma, T.("train_" + target(t) + "_mean"), T.("train_" + target(t) + "_sd"), '-o', ...
+        'Color', c_train, 'MarkerFaceColor', c_train, 'MarkerSize', 4, 'LineWidth', 1.4, 'CapSize', 3);
+    h2 = errorbar(ax, T.sigma, T.("heldout_" + target(t) + "_mean"), T.("heldout_" + target(t) + "_sd"), '-o', ...
+        'Color', c_test, 'MarkerFaceColor', c_test, 'MarkerSize', 4, 'LineWidth', 1.4, 'CapSize', 3);
+    k = abs(T.sigma - 0.01) < 1e-12;
+    h3 = plot(ax, [0.01 0.01], [T.("train_" + target(t) + "_mean")(k), T.("heldout_" + target(t) + "_mean")(k)], 'o', ...
+        'MarkerEdgeColor', c_sel, 'MarkerFaceColor', c_sel, 'MarkerSize', 6);
+    set(ax, 'XScale', 'log', 'YScale', 'log', 'XLim', [5e-5 2], 'YLim', [1e-15 1], 'YTick', 10.^(-15:3:0), ...
+        'XTick', 10.^(-4:0), 'FontName', font, 'FontSize', 12, 'TickDir', 'out');
+    title(ax, tlab(t), 'FontName', font, 'FontSize', 16, 'FontWeight', 'normal');
+    xlabel(ax, 'Noise standard deviation (fixed)', 'FontName', font, 'FontSize', 12);
+    if t == 1, ylabel(ax, 'NMSE', 'FontName', font, 'FontSize', 13); else, ax.YTickLabel = []; end
+    if t == 2
+        legend(ax, [h1 h2 h3(1)], {'Training', 'Held-out test', 'Selected model'}, 'Location', 'southeast', ...
+            'FontName', font, 'FontSize', 10);
+    end
+end
+end
+
+function gd_scaling_panels(tl, nv, font, tlab)
+% held-out NMSE of the three input scalings with all 10^6 training samples
+% (griddatan_size_curve.m); the network model (log10 gamma, lambda, z-scored)
+% outlined in red
+T = readtable(fullfile(nv, 'results', 'griddatan_size_curve.csv'), 'TextType', 'string');
+sc = ["raw", "zscore", "logz"];
+lab = {'Raw', 'Z-score', 'Log + Z'};   % log: log10 gamma and lambda (caption)
+col = [0.55 0.55 0.55; 0 0.447 0.741; 0.466 0.674 0.188];
+target = ["flux", "emc"];
+for t = 1:2
+    ax = nexttile(tl);  hold(ax, 'on');  box(ax, 'on');
+    m = zeros(1, 3);  e = zeros(1, 3);
+    for s = 1:3
+        r = T(T.scaling == sc(s) & T.n_train == 1e6, :);
+        m(s) = r.("heldout_" + target(t) + "_nmse_mean");  e(s) = r.("heldout_" + target(t) + "_nmse_sd");
+        b = bar(ax, s, m(s), 0.6, 'FaceColor', col(s, :), 'EdgeColor', 'none');
+        if sc(s) == "logz", set(b, 'EdgeColor', [1 0 0], 'LineWidth', 2); end
+        text(ax, s, m(s) * 1.9, sprintf('%.2g', m(s)), 'HorizontalAlignment', 'center', ...
+            'FontName', font, 'FontSize', 11);
+    end
+    errorbar(ax, 1:3, m, e, 'k', 'LineStyle', 'none', 'LineWidth', 1.2, 'CapSize', 6);
+    set(ax, 'YScale', 'log', 'XLim', [0.4 3.6], 'YLim', [0.01 10], 'XTick', 1:3, 'XTickLabel', lab, ...
+        'YTick', 10.^(-2:1), 'FontName', font, 'FontSize', 12, 'TickDir', 'out', 'XTickLabelRotation', 0);
+    title(ax, tlab(t), 'FontName', font, 'FontSize', 16, 'FontWeight', 'normal');
+    xlabel(ax, 'Input scaling (10^6 training samples)', 'FontName', font, 'FontSize', 12);
+    if t == 1, ylabel(ax, 'Held-out NMSE', 'FontName', font, 'FontSize', 13); else, ax.YTickLabel = []; end
 end
 end
 
@@ -103,8 +175,8 @@ for t = 1:2
     k = gp.n_train == 5000;
     h3 = plot(ax, [gp.n_train(k) gp.n_train(k)], [gp.("train_" + target(t) + "_nmse_mean")(k), ...
         gp.("heldout_" + target(t) + "_nmse_mean")(k)], 'o', 'MarkerEdgeColor', c_sel, 'MarkerFaceColor', c_sel, 'MarkerSize', 6);
-    set(ax, 'YScale', 'log', 'XLim', [0 5400], 'YLim', [1e-8 1], 'XTick', 0:1000:5000, 'XTickLabelRotation', 0, ...
-        'XTickLabel', ["0", "", "2000", "", "4000", ""], 'YTick', 10.^(-8:2:0), 'FontName', font, 'FontSize', 12, 'TickDir', 'out');
+    set(ax, 'YScale', 'log', 'XLim', [0 7900], 'YLim', [1e-8 1], 'XTick', 0:2000:8000, 'XTickLabelRotation', 0, ...
+        'YTick', 10.^(-8:2:0), 'FontName', font, 'FontSize', 12, 'TickDir', 'out');
     title(ax, tlab(t), 'FontName', font, 'FontSize', 16, 'FontWeight', 'normal');
     xlabel(ax, 'Number of training samples', 'FontName', font, 'FontSize', 12);
     if t == 1, ylabel(ax, 'NMSE', 'FontName', font, 'FontSize', 13); else, ax.YTickLabel = []; end

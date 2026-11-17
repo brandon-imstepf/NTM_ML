@@ -28,7 +28,7 @@ INPUTS = ["gamma1", "lambda1", "delta", "epsilon", "N1", "N2"]
 LABELS = [r"$\gamma$", r"$\lambda$", r"$\delta$", r"$\epsilon$", r"$N_1$", r"$N_2$"]
 TABLE_LABELS = ["γ", "λ", "δ", "ε", "N₁", "N₂"]
 TARGETS = [("flux", r"$\phi_\tau$", "φτ"), ("emc", r"$\Delta_\tau$", "Δτ")]
-MODELS = {"gp": ("Gaussian process", "GP"), "interp": ("Nearest-neighbor interpolation", "NN"),
+MODELS = {"gp": ("Gaussian process", "GP"), "interp": ("1-Nearest-neighbor interpolation", "1-NN"),
           "lr": ("Linear regression", "LR"), "sr": ("Symbolic regression", "SR")}
 
 plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],

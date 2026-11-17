@@ -123,7 +123,7 @@ text(gx + gw + 15, gy + 75, "± s.d.", 26, "start")
 # Nearest-neighbor interpolation (griddatan): training points, a query point and
 # its nearest training point
 rect(px, 669, pw, 122, "#b4a7d6")
-lines(1290, 718, ["Nearest-neighbor", "interpolation"], 40, 44)
+lines(1290, 718, ["1-Nearest-neighbor", "interpolation"], 40, 44)
 pts = [(1540, 700), (1600, 752), (1652, 694), (1700, 760), (1776, 694), (1812, 752), (1846, 696),
        (1575, 776), (1790, 776), (1630, 730)]
 q = (1730, 728)

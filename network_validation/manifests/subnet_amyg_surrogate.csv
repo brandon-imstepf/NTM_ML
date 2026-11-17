@@ -1,0 +1,6 @@
+case_id,method,setting_id,group,seed,subset,gamma1,lambda1,delta,epsilon,init_rescale,lambda2
+subnet__lr__BLA__g0.005_l0.02_d20_e80__amyg,lr,subnet__g0.005_l0.02_d20_e80__BLA__amyg,subnet_amyg,BLA,Amygdala+CTXsp,0.005,0.02,20,80,0.01,0.01
+subnet__sr__BLA__g0.005_l0.02_d20_e80__amyg,sr,subnet__g0.005_l0.02_d20_e80__BLA__amyg,subnet_amyg,BLA,Amygdala+CTXsp,0.005,0.02,20,80,0.01,0.01
+subnet__interp__BLA__g0.005_l0.02_d20_e80__amyg,interp,subnet__g0.005_l0.02_d20_e80__BLA__amyg,subnet_amyg,BLA,Amygdala+CTXsp,0.005,0.02,20,80,0.01,0.01
+subnet__gp__BLA__g0.005_l0.02_d20_e80__amyg,gp,subnet__g0.005_l0.02_d20_e80__BLA__amyg,subnet_amyg,BLA,Amygdala+CTXsp,0.005,0.02,20,80,0.01,0.01
+subnet__mlp__BLA__g0.005_l0.02_d20_e80__amyg,mlp,subnet__g0.005_l0.02_d20_e80__BLA__amyg,subnet_amyg,BLA,Amygdala+CTXsp,0.005,0.02,20,80,0.01,0.01
