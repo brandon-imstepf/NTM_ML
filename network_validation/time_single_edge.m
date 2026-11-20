@@ -42,8 +42,13 @@ t_flux = zeros(n, 1);  t_w1 = zeros(n, 1);
 if nworkers > 0
     % a pool with its own job storage folder, so that simultaneous jobs on a
     % cluster node do not share one
+    % (the folder must exist before it is assigned; on a SLURM node use the job's
+    % own scratch folder if there is one)
+    jsl = tempname(getenv_or('TMPDIR', tempdir));
+    [ok, msg] = mkdir(jsl);
+    assert(ok, 'cannot create the job storage folder %s: %s', jsl, msg);
     c = parcluster('local');
-    c.JobStorageLocation = tempname;  mkdir(c.JobStorageLocation);
+    c.JobStorageLocation = jsl;
     pool = parpool(c, nworkers);
     t_wall = tic;
     parfor i = 1:n
@@ -57,6 +62,7 @@ if nworkers > 0
     end
     wall = toc(t_wall);
     delete(pool);
+    rmdir(jsl, 's');
 else
     maxNumCompThreads(1);
     t_wall = tic;
@@ -82,4 +88,9 @@ fprintf('per sample (one core): mean %.3g s (phi_tau %.3g, Delta_tau %.3g), medi
 fprintf('wall clock for the %d samples: %.1f s (%.3g s per sample)\n', n, wall, wall / n);
 fprintf('10^6 samples: %.3g core-hours; wall clock with %d worker(s) %.3g h (%.3g days)\n', ...
     1e6 * mean(total) / 3600, p, 1e6 * wall / n / 3600, 1e6 * wall / n / 86400);
+end
+
+function v = getenv_or(name, default)
+v = getenv(name);
+if isempty(v) || ~isfolder(v), v = default; end
 end
