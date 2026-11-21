@@ -44,6 +44,7 @@ def to_latex(expr):
     xs = sp.symbols("x0:6")
     e = sp.sympify(expr, locals={f"x{k}": xs[k] for k in range(6)})
     s = sp.latex(e)
+    s = re.sub(r"(\d) \{", r"\1 \\cdot {", s)       # number times a power: 0.509 \cdot {0.888}^{...}
     s = re.sub(r"x_\{(\d)\}", lambda m: SYM[int(m.group(1))], s)
     s = re.sub(r"x_(\d)", lambda m: SYM[int(m.group(1))], s)
     s = re.sub(r"(\d+\.\d{3})\d+", r"\1", s)       # 3 decimals at most
@@ -89,7 +90,7 @@ for tgt, name in [("phi", "\\phi_\\tau"), ("Delta", "\\Delta_\\tau")]:
     lines.append(f"\\multicolumn{{5}}{{l}}{{${name}$}} \\\\")
     for k, r in enumerate(T[T.target == tgt].itertuples(), 1):
         mark = "*" if r.used else ""
-        lines.append(f"{k}{mark} & {r.complexity} & ${to_latex(r.expression)}$ & {r.nmse_test:.2g} & {r.nmse_heldout:.2g} \\\\")
+        lines.append(f"{k}{mark} & {r.complexity} & ${to_latex(r.expression)}$ & {r.nmse_test:.2f} & {r.nmse_heldout:.2f} \\\\")
     lines.append("\\midrule")
 open(os.path.join(HERE, "results", "table_sr_runs.tex"), "w").write("\n".join(lines[:-1]) + "\n")
 print("wrote results/sr_runs.csv and results/table_sr_runs.tex")
