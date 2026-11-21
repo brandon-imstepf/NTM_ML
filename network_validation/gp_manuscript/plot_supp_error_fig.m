@@ -40,8 +40,9 @@ G = load(cfg.gp_model_file);
 rng(G.training_seed);
 gp_train = super(randperm(1e5, G.dataset_size), :);
 
-methods = ["lr", "sr", "gp", "interp", "mlp"];
-labels = ["Linear regression (feature selected)", "Symbolic regression", "Gaussian process", "1-Nearest Neighbor", "MLP"];
+% rows from the bottom up in the paper order (11/17): LR (bottom), SR, 1-NN, GP, MLP (top)
+methods = ["mlp", "gp", "interp", "sr", "lr"];   % top to bottom
+labels = ["MLP", "Gaussian process", "1-NN interpolation", "Symbolic regression", "Linear regression"];   % (11/20) "(feature selected)" dropped: too long for the row at 25% larger text; in the caption
 sets = struct('lr', {{lrsr_train, lrsr_test}}, 'sr', {{lrsr_train, lrsr_test}}, ...
     'gp', {{gp_train, heldout}}, 'interp', {{super, heldout}}, 'mlp', {{super, heldout}});
 P = struct();
@@ -63,6 +64,7 @@ disp(S)
 tname = ["\phi_\tau", "\Delta_\tau"];
 setname = ["train", "test"];
 col = [0.13 0.40 0.67];
+fs = 1.25 * 1.25;   % (11/20, user) all text 25% larger than before, then another 25% (x1.5625)
 for kind = ["abs", "rel"]
     fig = figure('Visible', 'off', 'Units', 'centimeters', 'Position', [1 1 30 32], 'Color', 'w');
     tl = tiledlayout(fig, numel(methods), 4, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -79,22 +81,26 @@ for kind = ["abs", "rel"]
                     scatter(ax, y, p - y, 3, col, 'filled', 'MarkerFaceAlpha', 0.3, 'MarkerEdgeColor', 'none');
                     yline(ax, 0, '-', 'Color', [0.2 0.2 0.2]);
                     if r == numel(methods), xlabel(ax, "true " + tname(t)); end
-                    if t == 1 && k == 1, ylabel(ax, {char(labels(r)), 'predicted - true'}, 'FontSize', 10); end
+                    if t == 1 && k == 1, ylabel(ax, {char(labels(r)), 'predicted - true'}, 'FontSize', 10 * fs); end
                 else
                     keep = y ~= 0;
                     scatter(ax, abs(y(keep)), abs(p(keep) - y(keep)) ./ abs(y(keep)), 3, col, 'filled', ...
                         'MarkerFaceAlpha', 0.3, 'MarkerEdgeColor', 'none');
-                    set(ax, 'XScale', 'log', 'YScale', 'log');
+                    set(ax, 'XScale', 'log', 'YScale', 'log', 'YTick', 10.^(-30:10:30));   % (11/20) fixed: at the larger text MATLAB dropped labels
                     yline(ax, 1, ':', 'Color', [0.3 0.3 0.3]);
                     if r == numel(methods), xlabel(ax, "|true " + tname(t) + "|"); end
-                    if t == 1 && k == 1, ylabel(ax, {char(labels(r)), 'relative error'}, 'FontSize', 10); end
+                    if t == 1 && k == 1, ylabel(ax, {char(labels(r)), 'relative error'}, 'FontSize', 10 * fs); end
                 end
                 if all(p == y)   % 1-NN on its own lookup table
                     text(ax, 0.5, 0.78, {'zero error', '(lookup table)'}, 'Units', 'normalized', ...
-                        'HorizontalAlignment', 'center', 'FontSize', 10, 'Color', [0.3 0.3 0.3]);
+                        'HorizontalAlignment', 'center', 'FontSize', 10 * fs, 'Color', [0.3 0.3 0.3]);
                 end
-                title(ax, sprintf('%s, %s: NMSE %.2g', tname(t), setname(k), n), 'FontWeight', 'normal', 'FontSize', 10);
-                set(ax, 'FontSize', 8.75, 'TickDir', 'out');
+                ttl = sprintf('%s, %s: NMSE %.2g', tname(t), setname(k), n);
+                % (11/20) in the absolute-error figure the axis exponent (x10^-n) sits
+                % at the top left of each panel: an empty second line lifts the title above it
+                if kind == "abs", ttl = {ttl, ''}; end
+                title(ax, ttl, 'FontWeight', 'normal', 'FontSize', 10 * fs);
+                set(ax, 'FontSize', 8.75 * fs, 'TickDir', 'out');
             end
         end
     end

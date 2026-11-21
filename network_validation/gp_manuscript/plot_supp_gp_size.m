@@ -51,7 +51,9 @@ for t = 1:2
     ylabel(ax, "held-out NMSE, " + tlab(t));
     title(ax, tlab(t), 'FontWeight', 'normal');
 end
-lg = legend(h, lab, 'Orientation', 'horizontal', 'NumColumns', 2, 'FontSize', 8);  lg.Layout.Tile = 'south';
+% legend in the paper order (11/17), row by row: LR, SR, 1-NN, GP (MLP data), GP (LR/SR set), MLP
+k = [3 2 4 5 6 1];
+lg = legend(h(k), lab(k), 'Orientation', 'horizontal', 'NumColumns', 2, 'FontSize', 8);  lg.Layout.Tile = 'south';
 exportgraphics(fig, out_file + ".png", 'Resolution', 300);
 exportgraphics(fig, out_file + ".pdf", 'ContentType', 'vector');
 fprintf('wrote %s.png/.pdf\n', out_file);

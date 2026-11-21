@@ -17,7 +17,7 @@ function T = network_error_all()
 here = fileparts(mfilename('fullpath'));
 nv = fileparts(here);
 addpath(nv);
-methods = ["mlp", "gp", "interp", "sr", "lr"];
+methods = ["lr", "sr", "interp", "gp", "mlp"];   % paper order (11/17)
 cases = fig8_cases(["interior", "edge", "ood"]);
 rows = {};  mrows = {};
 for c = cases
@@ -39,21 +39,24 @@ for c = cases
         v = sscanf(char(c.setting), 'g%f_l%f_d%f_e%f')';
         rows(end+1, :) = {c.group, c.seed, c.setting, v(1), v(2), v(3), v(4), m, e, 1 - e, fin}; %#ok<AGROW>
         % by month, over the 30 regions (as in the network figure of the main text):
-        % NMSE (Eq. 7) and R^2 of the least-squares fit; NaN once the run is non-finite
+        % NMSE (Eq. 7) and R^2 of the least-squares fit; NaN once the run is non-finite.
+        % (11/17) also the fit through the origin of the network figure (plot_fig8_gp.m):
+        % slope b = sum(x y) / sum(x^2) and its R^2 = 1 - sum (y - b x)^2 / sum (y - mean y)^2
         for k = 1:5
             x = num.N(:, hm(k));  y = s.N(:, hm(k));
             if all(isfinite(y))
                 R = corrcoef(x, y);  q = polyfit(x, y, 1);
+                b = sum(x .* y) / sum(x .^ 2);  r2o = 1 - sum((y - b * x) .^ 2) / sum((y - mean(y)) .^ 2);
                 mrows(end+1, :) = {c.group, c.seed, c.setting, m, k, day(hm(k)), nmse_eq7(y, x), R(1, 2)^2, ...
-                    q(1), q(2) * 1e3, 1}; %#ok<AGROW>
+                    q(1), q(2) * 1e3, b, r2o, 1}; %#ok<AGROW>
             else
-                mrows(end+1, :) = {c.group, c.seed, c.setting, m, k, day(hm(k)), NaN, NaN, NaN, NaN, 0}; %#ok<AGROW>
+                mrows(end+1, :) = {c.group, c.seed, c.setting, m, k, day(hm(k)), NaN, NaN, NaN, NaN, NaN, NaN, 0}; %#ok<AGROW>
             end
         end
     end
 end
 M = cell2table(mrows, 'VariableNames', {'group', 'seed', 'setting', 'method', 'month', 'day', 'nmse', 'r2_fit', ...
-    'slope', 'intercept_nM', 'finite'});
+    'slope', 'intercept_nM', 'slope_origin', 'r2_origin', 'finite'});
 writetable(M, fullfile(nv, 'results', 'network_error_by_month.csv'));
 T = cell2table(rows, 'VariableNames', {'group', 'seed', 'setting', 'gamma', 'lambda', 'delta', 'epsilon', ...
     'method', 'nmse', 'r2', 'finite'});

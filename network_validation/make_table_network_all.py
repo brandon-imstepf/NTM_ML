@@ -13,7 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-METHODS = ["mlp", "gp", "interp", "lr", "sr"]
+METHODS = ["lr", "sr", "interp", "gp", "mlp"]   # paper order (11/17)
 SEEDS = ["ECl", "CA1", "RSPd"]
 PRIMARY = ("CA1", "g0.005_l0.02_d20_e80")     # the Primary Parameter Set (Figs. 9-10 of the main text)
 

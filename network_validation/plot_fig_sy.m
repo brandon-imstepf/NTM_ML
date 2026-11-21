@@ -23,8 +23,8 @@ if string(run_set) == "all"
     A = readtable(fullfile(here, 'results', 'network_error_all.csv'), 'TextType', 'string');
     A = A(A.group == "interior", :);
     A.nmse(A.finite == 0) = Inf;  A.r2(A.finite == 0) = -Inf;    % drawn as crosses, not in medians
-    methods = ["mlp", "gp", "interp", "lr", "sr"];
-    labels = ["MLP", "GP", "1-NN", "LR", "SR"];
+    methods = ["lr", "sr", "interp", "gp", "mlp"];   % paper order, left to right (11/17)
+    labels = ["LR", "SR", "1-NN", "GP", "MLP"];
 else
     [~, tag] = l2f_runs(run_set);
     A = readtable(fullfile(here, 'results', "network_checks_l2f" + tag + ".csv"), 'TextType', 'string');

@@ -1,4 +1,5 @@
-"""Shapley superfigure (all text 25% larger since 11/13, same canvas): the MLP, the Gaussian process and nearest-neighbor
+"""Shapley superfigure (all text 25% larger since 11/13 and again 11/17, same canvas; subtitles centred
+under the title; rows bottom to top 1-NN, GP, MLP, table rows 1-NN, GP, MLP as the paper order): the MLP, the Gaussian process and nearest-neighbor
 interpolation in one figure, in the style of the MLP Shapley figure of the paper
 (images/Figure10.png). (a) shap.summary_plot beeswarms, one row per model, with
 phi_tau and Delta_tau side by side and a common x range per column; (b) a table
@@ -53,9 +54,9 @@ def main():
         xlim[t] = (lo - pad, hi + pad)
 
     fig = plt.figure(figsize=(13, 17))
-    fig.suptitle("Shapley analysis feature importance", fontsize=27.5, fontweight="bold", y=0.993)
-    fig.text(0.01, 0.955, "a", fontsize=25, fontweight="bold")
-    fig.text(0.555, 0.955, "Distribution of feature importance SHAP values", ha="center", fontsize=21.25)
+    fig.suptitle("Shapley analysis feature importance", fontsize=34.375, fontweight="bold", y=0.993)
+    fig.text(0.01, 0.947, "a", fontsize=31.25, fontweight="bold")
+    fig.text(0.5, 0.947, "Distribution of feature importance SHAP values", ha="center", fontsize=26.5625)
     top, row_h, gap = 0.915, 0.185, 0.035
     for r, (m, mlab) in enumerate(MODELS):
         y0 = top - (r + 1) * row_h - r * gap
@@ -66,31 +67,32 @@ def main():
             shap.summary_plot(phi, X, feature_names=LABELS, show=False, plot_size=None,
                               color_bar=False, sort=True, max_display=6)
             ax.set_xlim(*xlim[t])
+            ax.set_xticks([-2, 0, 2] if t == "flux" else [-1, 0, 1, 2])   # (11/17) keep every tick at the larger font
             ax.set_xlabel("")
-            ax.tick_params(axis="y", labelsize=20)
-            ax.tick_params(axis="x", labelsize=17.5)
+            ax.tick_params(axis="y", labelsize=25)
+            ax.tick_params(axis="x", labelsize=21.875)
             if r == 0:
-                ax.set_title(tlab, fontsize=23.75)
-        fig.text(0.04, y0 + row_h / 2, mlab, rotation=90, ha="center", va="center", fontsize=20,
+                ax.set_title(tlab, fontsize=29.6875)
+        fig.text(0.04, y0 + row_h / 2, mlab, rotation=90, ha="center", va="center", fontsize=25,
                  fontweight="bold", multialignment="center")
     fig.text(0.555, top - 3 * row_h - 2 * gap - 0.035, "SHAP Value (Influence on Model Prediction)",
-             ha="center", fontsize=21.25)
+             ha="center", fontsize=26.5625)
     # one colour bar for all panels, with shap's colour map
     cax = fig.add_axes([0.925, top - 3 * row_h - 2 * gap + 0.15, 0.012, 3 * row_h + 2 * gap - 0.3])
     sm = matplotlib.cm.ScalarMappable(cmap=shap.plots.colors.red_blue, norm=matplotlib.colors.Normalize(0, 1))
     cb = fig.colorbar(sm, cax=cax, ticks=[0, 1])
     cb.set_ticklabels(["Low", "High"])
     cb.outline.set_visible(False)
-    cb.set_label("Feature Value", fontsize=21.25, labelpad=-5)
-    cax.tick_params(labelsize=15, length=0)
+    cb.set_label("Feature Value", fontsize=26.5625, labelpad=-5)
+    cax.tick_params(labelsize=18.75, length=0)
 
-    fig.text(0.01, 0.215, "b", fontsize=25, fontweight="bold")
-    fig.text(0.555, 0.215, "Mean magnitude of SHAP values", ha="center", fontsize=21.25)
+    fig.text(0.01, 0.215, "b", fontsize=31.25, fontweight="bold")
+    fig.text(0.5, 0.215, "Mean magnitude of SHAP values", ha="center", fontsize=26.5625)
     tax = fig.add_axes([0.06, 0.01, 0.9, 0.19])
     tax.axis("off")
     cells, rows = [], []
     for t, _, tt in TARGETS:
-        for m, _ in MODELS:
+        for m, _ in MODELS[::-1]:          # paper order 1-NN, GP, MLP (11/17)
             cells.append([f"{v:.3f}" for v in np.abs(data[m, t][0]).mean(axis=0)])
             rows.append(f"{tt} {SHORT[m]}")
     tab = tax.table(cellText=cells, rowLabels=rows, colLabels=TABLE_LABELS, loc="center", cellLoc="center",
@@ -99,7 +101,7 @@ def main():
     for (r, c), cell in tab.get_celld().items():
         cell.set_edgecolor("white")
         cell.set_linewidth(1.5)
-        cell.set_fontsize(17.5)
+        cell.set_fontsize(21.875)
         if r == 0:
             cell.set_facecolor("#1b5e80")
             cell.get_text().set_color("white")
@@ -112,7 +114,7 @@ def main():
                        loc="center", facecolor="#1b5e80", edgecolor="white")
     hdr.get_text().set_color("white")
     hdr.get_text().set_fontweight("bold")
-    hdr.set_fontsize(17.5)
+    hdr.set_fontsize(21.875)
     OUT.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
         fig.savefig(OUT / f"shapley_super.{ext}", dpi=300, facecolor="white")

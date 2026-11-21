@@ -10,7 +10,7 @@ import math
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-METHODS = ["mlp", "gp", "interp", "lr", "sr"]
+METHODS = ["lr", "sr", "interp", "gp", "mlp"]   # paper order (11/17)
 BINS = [("interior d>=0.15", r"$d \geq 0.15$ (interior)"), ("0.05-0.15", r"$0.05 \leq d < 0.15$"),
         ("0.01-0.05", r"$0.01 \leq d < 0.05$"), ("d<0.01", r"$d < 0.01$ (edge)")]
 TAILS = [("N1", "low", r"$N_1$, lower 1\%"), ("N1", "high", r"$N_1$, upper 1\%")]

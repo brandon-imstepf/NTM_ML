@@ -3,8 +3,8 @@ function T = time_single_edge(n, nworkers)
 % for the cost of generating 10^6 samples (collaborator, 11/20). Each sample is
 % computed exactly as in the parfor branch of the simulator's
 % NetworkTransportModel_SingleEdge_AllParams.m: the same input sampling (rng(42),
-% gamma1 and lambda1 log-uniform, delta and epsilon uniform, N1 and N2 uniform
-% on [0, 0.005]), the same tolerances (1e-10) and options, and the same two calls,
+% gamma1 and lambda1 log-uniform, delta and epsilon uniform, N1 and N2 Gamma(2, 5e-4)
+% as in Table 7), the same tolerances (1e-10) and options, and the same two calls,
 % SingleEdgeFluxCalculator_WrapperFun (phi_tau) and SingleEdgeWCalculator
 % (Delta_tau). The first n of the generator's samples are timed.
 %   nworkers = 0: one after the other on one computational thread.
@@ -31,8 +31,13 @@ rng(42);
 N = 100000;
 logdist = @(x, m) 10.^(log10(x(1)) + (log10(x(2) / x(1)) * rand(m, 1)));
 lindist = @(x, m) x(1) + (x(2) - x(1)) * rand(m, 1);
+% N1, N2 ~ Gamma(2, 5e-4) as the training data (main text Table 7; the generator
+% in MLP_Tau_Transport, "biased widerange"), drawn without the Statistics Toolbox
+% as -5e-4*log(U1*U2). (Before 11/21: uniform on [0, 0.005], as the copy of the
+% generator in the simulator folder.)
+gamdist = @(m) -5e-4 * log(rand(m, 1) .* rand(m, 1));
 P = [logdist([5e-5 5e-2], N), logdist([0.01 0.1], N), lindist([10 100], N), lindist([10 100], N), ...
-     lindist([0 0.005], N), lindist([0 0.005], N)];
+     gamdist(N), gamdist(N)];
 P = P(1:n, :);
 names = {'gamma1', 'lambda1', 'delta', 'epsilon', 'tau_x0', 'tau_xL'};
 opt = {'beta', 1e-6, 'frac', 0.7, 'L_int', 1000, 'L1', 200, 'L2', 200, 'L_ais', 40, 'L_syn', 40, ...

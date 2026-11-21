@@ -32,3 +32,6 @@ gp_manuscript/figures/
 gp_manuscript/models_size/
 # Fig. 8 runs with the GP (manifests/fig8_gp.csv)
 outputs_fig8/
+# every simulation output folder (outputs, outputs_subnet, outputs_lrfix,
+# outputs_lr_old, ...): regenerated from the manifests; large .mat files
+outputs*/

@@ -102,7 +102,10 @@ for k, (x, y) in nodes.items():
 arrow(1305, 380, 1410, 380, w=50)
 rect(1425, 320, 445, 120, "#b4a7d6")
 text(1647, 395, "3x<tspan font-size='28' dy='8'>1</tspan><tspan dy='-8'> + exp(x</tspan><tspan font-size='28' dy='8'>2</tspan><tspan dy='-8'>)</tspan>", 50)
+# (11/17) paper order LR, SR, 1-NN, GP, MLP: the GP block is drawn 135 px lower and the
+# 1-NN block 188 px higher than in their original positions, so 1-NN comes before GP
 # Gaussian process
+add('<g transform="translate(0,135)">')
 rect(px, 481, pw, 175, "#b4a7d6")
 text(px + pw / 2, 528, "Gaussian process", 42)
 gx, gy, gw, gh = 1240, 545, 480, 100
@@ -120,8 +123,10 @@ for o in obs:
     add(f'<circle cx="{o}" cy="{gy + 55 - 28 * math.sin((o - gx) / 75):.1f}" r="6" fill="#222"/>')
 text(gx + gw + 15, gy + 40, "mean", 26, "start")
 text(gx + gw + 15, gy + 75, "± s.d.", 26, "start")
+add('</g>')
 # Nearest-neighbor interpolation (griddatan): training points, a query point and
 # its nearest training point
+add('<g transform="translate(0,-188)">')
 rect(px, 669, pw, 122, "#b4a7d6")
 lines(1290, 718, ["1-Nearest-neighbor", "interpolation"], 40, 44)
 pts = [(1540, 700), (1600, 752), (1652, 694), (1700, 760), (1776, 694), (1812, 752), (1846, 696),
@@ -133,6 +138,7 @@ for (a, b) in pts:
     add(f'<circle cx="{a:.1f}" cy="{b:.1f}" r="6" fill="#222"/>')
 add(f'<circle cx="{near[0]:.1f}" cy="{near[1]:.1f}" r="10" fill="none" stroke="#3c2a78" stroke-width="3"/>')
 add(f'<polygon points="{q[0]},{q[1] - 12} {q[0] + 11},{q[1]} {q[0]},{q[1] + 12} {q[0] - 11},{q[1]}" fill="#6a5acd" stroke="#3c2a78" stroke-width="2"/>')
+add('</g>')
 # MLP neural network (moved down by DY)
 add(f'<g transform="translate(0,{DY})">')
 rect(px, 669, pw, 353, "#b4a7d6")

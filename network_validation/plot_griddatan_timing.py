@@ -10,7 +10,8 @@ the timings here are on a different machine).
 
     python plot_griddatan_timing.py      # outputs_nm/griddatan_timing.png/.pdf
 
-Font sizes 25% larger than before (11/16).
+Font sizes 25% larger than before (11/16), and again 25% larger with one legend
+under the panels (11/20, user).
 """
 from pathlib import Path
 
@@ -25,12 +26,12 @@ T = pd.read_csv(HERE / "results" / "griddatan_timing.csv")
 N_QUERIES = 276 * 151
 T_NUMERIC = 14254.0
 plt.rcParams.update({"font.family": "serif", "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-                     "mathtext.fontset": "stix", "font.size": 15})
+                     "mathtext.fontset": "stix", "font.size": 18.75})
 COL = {"nearest": "#1f77b4", "linear": "#d62728"}
 NAME = {"nearest": "1-NN ('nearest')", "linear": "Linear (Delaunay, 'linear')"}
 n_ext = np.logspace(np.log10(500), 6, 60)
 
-fig, axs = plt.subplots(1, 3, figsize=(16, 5.2), layout="constrained")
+fig, axs = plt.subplots(1, 3, figsize=(16, 6.4), layout="constrained")
 for j, (col, ylab) in enumerate([("query_s", "Time per query (s)"), ("setup_s", "Set-up time (s)"),
                                  ("query_s", f"Surrogate time per network run (s)\n({N_QUERIES:,} queries)")]):
     ax = axs[j]
@@ -44,12 +45,13 @@ for j, (col, ylab) in enumerate([("query_s", "Time per query (s)"), ("setup_s", 
                       "--", color=COL[m], lw=1.8, label=fr"{NAME[m]}, extrapolated ($\propto n^{{{b:.2f}}}$)")
     if j == 2:
         ax.axhline(T_NUMERIC, color="0.3", ls=":", lw=1.5, label="Numeric NTM run (Table 4)")
-    ax.set_xlabel("Number of training samples, $n$", fontsize=16.25)
-    ax.set_ylabel(ylab, fontsize=16.25)
+    ax.set_xlabel("Number of training samples, $n$", fontsize=20.3)
+    ax.set_ylabel(ylab, fontsize=20.3)
     ax.grid(alpha=0.25, which="both")
-    ax.set_title("abc"[j], loc="left", fontweight="bold", fontsize=18.75)
-axs[2].legend(fontsize=12.5, loc="upper left")
-axs[0].legend(fontsize=12.5, loc="upper left")
+    ax.set_title("abc"[j], loc="left", fontweight="bold", fontsize=23.4)
+# one legend for the figure, under the panels (panel c has all four entries)
+h, lab = axs[2].get_legend_handles_labels()
+fig.legend(h, lab, loc="outside lower center", ncol=2, fontsize=15.6, frameon=False)
 out = HERE / "outputs_nm" / "griddatan_timing"
 fig.savefig(str(out) + ".png", dpi=250, facecolor="white")
 fig.savefig(str(out) + ".pdf", facecolor="white")

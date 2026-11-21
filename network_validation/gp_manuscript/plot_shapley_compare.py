@@ -69,6 +69,7 @@ def compare(other):
     sd = pd.read_csv(RES / "shapley_target_std.csv")
     rows = []
     fig, axs = plt.subplots(2, 6, figsize=(20, 7.2), layout="constrained")
+    vert = []     # (11/20) data for the vertical version (supplement)
     fig2, axs2 = plt.subplots(2, 8, figsize=(25, 6.6), layout="constrained")
     for r, (t, tlab, tcol) in enumerate(TARGETS):
         scale = sd[(sd.model == "mlp") & (sd.target == t)].train_std.iloc[0]
@@ -97,6 +98,7 @@ def compare(other):
             rows.append(dict(other=other, target=t, input=INPUTS[i], r2_identity=r2, corr=rho,
                              mean_abs_mlp=np.abs(x).mean(), mean_abs_other=np.abs(y).mean(),
                              mean_abs_diff=np.abs(y - x).mean()))
+        vert.append((tlab, pm, po, dis, order, norm))
         fig.colorbar(sc, ax=axs[r, :], shrink=0.9, pad=0.01,
                      label=r"Disagreement $\sum_i |\mathrm{SHAP}_i^{\mathrm{" + NAMES[other].split("-")[0] +
                      r"}} - \mathrm{SHAP}_i^{\mathrm{MLP}}|$")
@@ -130,11 +132,42 @@ def compare(other):
     # (11/17) no suptitle on the comparison figure: it is a Supplementary figure and its caption says this
     fig2.suptitle(f"Where {NAMES[other]} and MLP Shapley values disagree", fontsize=16, fontweight="bold")
     OUT.mkdir(parents=True, exist_ok=True)
-    for f, name in [(fig, f"shapley_compare_mlp_{other}"), (fig2, f"shapley_disagreement_mlp_{other}")]:
+    fig3 = vertical(vert, other)
+    for f, name in [(fig, f"shapley_compare_mlp_{other}"), (fig2, f"shapley_disagreement_mlp_{other}"),
+                    (fig3, f"shapley_compare_mlp_{other}_vertical")]:
         f.savefig(OUT / f"{name}.png", dpi=200, facecolor="white")
         f.savefig(OUT / f"{name}.pdf", facecolor="white")
         plt.close(f)
     return rows
+
+
+def vertical(vert, other):
+    """(11/20, user) The comparison as a vertical figure for the supplement: inputs in
+    rows, phi_tau and Delta_tau in columns, drawn at its printed size (13.1 cm wide,
+    the sn-jnl text width) so that the font sizes are those on the page. Each panel
+    has equal x and y limits, so y = x is its diagonal; R^2 about y = x in the
+    upper left; one colour bar (total disagreement) under each column."""
+    cm = 1 / 2.54
+    with plt.rc_context({"font.size": 9}):
+        fig, axs = plt.subplots(6, 2, figsize=(13.1 * cm, 18.5 * cm), layout="constrained")
+        for c, (tlab, pm, po, dis, order, norm) in enumerate(vert):
+            for i in range(6):
+                ax = axs[i, c]
+                x, y = pm[:, i], po[:, i]
+                lim = [min(x.min(), y.min()), max(x.max(), y.max())]
+                lim = [lim[0] - 0.05 * (lim[1] - lim[0]), lim[1] + 0.05 * (lim[1] - lim[0])]
+                ax.plot(lim, lim, "--", color="0.45", lw=0.8)
+                sc = ax.scatter(x[order], y[order], s=2.5, c=dis[order], cmap=CMAP, norm=norm, alpha=0.85, lw=0)
+                ax.set_xlim(lim); ax.set_ylim(lim)
+                ax.tick_params(labelsize=8, length=2.5, pad=1.5)
+                ax.text(0.03, 0.95, f"$R^2$ = {r2_identity(x, y):.3f}", transform=ax.transAxes, va="top", fontsize=9)
+                if i == 0: ax.set_title(tlab, fontsize=11)
+                if c == 0: ax.set_ylabel(LABELS[i], fontsize=11, rotation=0, labelpad=10, va="center")
+                if i == 5: ax.set_xlabel("MLP SHAP value", fontsize=10)
+            fig.colorbar(sc, ax=axs[:, c], location="bottom", shrink=0.9, aspect=25, pad=0.01,
+                         label="Disagreement (sum over inputs)")
+        fig.supylabel(f"{NAMES[other]} SHAP value", fontsize=10)
+    return fig
 
 
 if __name__ == "__main__":

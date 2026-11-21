@@ -55,7 +55,17 @@ def nmse(y, p):
     return mean_squared_error(y, p) / np.var(y)
 
 
+def zscore(X, ref):
+    """Columns of X z-scored with the means and SDs of ref (the training features)."""
+    return (X - ref.mean()) / ref.std()
+
+
 def forward_stepwise(X, y):
+    # (11/19) on z-scored features: with an intercept the least-squares fits,
+    # and so the selection, are the same in exact arithmetic, but on the raw
+    # inputs (N^2 ~ 1e-12) the solves lose precision, which changed the 7th and
+    # 8th phi_tau features (gamma*N2 and epsilon*N2 in place of epsilon)
+    X = zscore(X, X)
     kf = KFold(n_splits=K_FOLDS, shuffle=True, random_state=42)
     selected, remaining = [], list(X.columns)
     while remaining:
@@ -85,16 +95,23 @@ def fit_target(target, train, test):
     order = forward_stepwise(Xtr, ytr)
     feats = order[:ELBOW]
     match = feats == PAPER_ORDER[target]
+    match_set = set(feats) == set(PAPER_ORDER[target])
     print(f"\n{target}: selected {[pretty(f) for f in feats]}")
-    print(f"  matches paper feature order: {match}")
+    print(f"  matches paper feature order: {match}; same set of features: {match_set}")
 
+    # (11/19) each fold fitted on z-scored features (for precision, as in
+    # forward_stepwise), then the coefficients converted back to the raw
+    # features, which is what the MATLAB surrogate (make_surrogate 'lr') uses
+    mu, sd = Xtr[feats].mean().values, Xtr[feats].std().values
+    Ztr = (Xtr[feats].values - mu) / sd
     kf = KFold(n_splits=K_FOLDS, shuffle=True, random_state=42)
     best, best_score = None, np.inf
     for tr, te in kf.split(Xtr):
-        m = LinearRegression().fit(Xtr[feats].values[tr], ytr[tr])
-        s = nmse(ytr[te], m.predict(Xtr[feats].values[te]))
+        m = LinearRegression().fit(Ztr[tr], ytr[tr])
+        s = nmse(ytr[te], m.predict(Ztr[te]))
         if s < best_score:
             best, best_score = m, s
+    best.coef_, best.intercept_ = best.coef_ / sd, best.intercept_ - np.sum(best.coef_ * mu / sd)
 
     def boot(X, y):
         return np.array([nmse(yb, best.predict(Xb)) for Xb, yb in (
@@ -107,7 +124,7 @@ def fit_target(target, train, test):
         "feature_symbols": np.array([pretty(f) for f in feats], dtype=object),
         "coef": best.coef_.astype(np.float64),
         "intercept": float(best.intercept_),
-        "matches_paper_order": match,
+        "matches_paper_order": match, "matches_paper_set": match_set,
         "boot_nmse_train": b_tr, "boot_nmse_test": b_te,
     }
 

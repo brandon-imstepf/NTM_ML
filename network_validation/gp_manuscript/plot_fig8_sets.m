@@ -1,6 +1,6 @@
 function S = plot_fig8_sets(groups)
-% Fig. 8-style figures (regional tau of each sNTM against the numeric NTM, months
-% 1-5, R^2 and NMSE per panel; plot_fig8_gp.m) for every network setting:
+% Fig. 10-style figures (regional tau of each sNTM against the numeric NTM, months
+% 1, 3 and 5; b, R^2 and NMSE per panel; plot_fig8_gp.m) for every network setting:
 %   "fig8"      the Fig. 8 setting (outputs_fig8/)
 %   "interior"  8 settings x seeds ECl, CA1, RSPd (outputs_consistent/rec_l2f__*)
 %   "edge"      8 settings on the corners of the training range, ECl
@@ -37,7 +37,12 @@ for k = 1:numel(cases)
     out_dir = fullfile(fig_root, c.group);
     if ~isfolder(out_dir), mkdir(out_dir); end
     fprintf('\n=== %s %s %s ===\n', c.group, c.setting, c.seed);
-    T = plot_fig8_gp(fullfile(out_dir, c.setting + "__" + c.seed), c.src_fmt, ttl, c.num_file);
+    % 1-NN runs of the edge and ood sets: outputs_consistent/<group>__<setting>__<seed>__interp.mat
+    interp_file = '';
+    if ismember(c.group, ["edge", "ood"])
+        interp_file = fullfile('outputs_consistent', c.group + "__" + c.setting + "__" + c.seed + "__interp.mat");
+    end
+    T = plot_fig8_gp(fullfile(out_dir, c.setting + "__" + c.seed), c.src_fmt, ttl, c.num_file, interp_file);
     close all
     n = height(T);
     T = [table(repmat(c.group, n, 1), repmat(c.setting, n, 1), repmat(c.seed, n, 1), ...
